@@ -1,0 +1,31 @@
+# .editorconfig 是一个用于统一代码风格的配置文件
+
+# 参考文档：https://blog.csdn.net/qq_28613375/article/details/131506707、
+# https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties#current-and-future-editorconfig-properties
+root = true
+
+[*]
+# 设置文件的字符编码。可选值为：latin1、utf-8、utf-16be、utf-16le、utf-8-bom。
+charset = utf-8
+# 设置缩进风格。可选值为 tab（制表符）或 space（空格）。
+indent_style = space
+# 设置每个缩进级别的空格数。可选值为整数（例如 2 或 4）或 tab。
+indent_size = 2
+# 设置换行符的类型。可选值为 lf（Unix 风格）、cr（Mac 风格）或 crlf（Windows 风格）。
+end_of_line = crlf
+# 设置是否在文件末尾插入一个空行。可选值为 true 或 false。
+insert_final_newline = true
+# 设置是否删除行末尾的空白字符。可选值为 true 或 false。
+trim_trailing_whitespace = true
+# 设置每行的最大字符数。可选值为正整数或 off。
+max_line_length = 120
+
+# 设置制表符的宽度。可选值为整数。
+# tab_width = 10
+
+[*.js]
+indent_size = 2
+
+[*.html]
+indent_style = tab
+tab_width = 2
