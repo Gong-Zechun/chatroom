@@ -27,7 +27,7 @@ spring:
 redisson:
     config:
     single-server-config:
-        address: "redis://redis.railway.internal:6379"
+        address: "redis://default:KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE@redis.railway.internal:6379"
         password: "KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE"
         connection-pool-size: 50
         connection-minimum-idle-size: 10
