@@ -24,6 +24,19 @@ spring:
             log-slow-sql: true
             slow-sql-millis: 1000
 
+    redis:
+      database: 0 # 数据库编号（默认为0）
+      host: redis.railway.internal # Redis服务器地址
+      port: 6379 # Redis服务器端口
+      password:  KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE
+      timeout: 3000ms # 连接超时时间（可选）
+      jedis:
+        pool:
+          max-active: 8 # 最大活动连接数
+          max-idle: 8 # 最大空闲连接数
+          min-idle: 0 # 最小空闲连接数
+          max-wait: -1ms # 等待可用连接的最大时间（负值表示无限等待）
+
 redisson:
     config:
     single-server-config:
