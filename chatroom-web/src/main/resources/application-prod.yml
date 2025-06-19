@@ -1,0 +1,51 @@
+# 数据库配置
+spring:
+    application:
+        name: chatroom
+    datasource:
+        url: jdbc:mysql://127.0.0.1:3306/chatroom?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&useUnicode=true&allowPublicKeyRetrieval=true
+        type: com.alibaba.druid.pool.DruidDataSource
+        username: root
+        password: 123456
+        # Druid 连接池配置
+        druid:
+            initial-size: 5
+            min-idle: 5
+            max-active: 20
+            max-wait: 60000
+            time-between-eviction-runs-millis: 60000
+            min-evictable-idle-time-millis: 300000
+            validation-query: SELECT 1
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            # SQL 日志配置
+            stat-sql-enable: true
+            log-slow-sql: true
+            slow-sql-millis: 1000
+
+redisson:
+    config:
+    single-server-config:
+        address: "redis://redis.railway.internal:6379"
+        password: "KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE"
+        connection-pool-size: 50
+        connection-minimum-idle-size: 10
+
+#sql日志显示
+mybatis:
+    configuration:
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #mapper文件位置配置
+        mapper-locations: classpath:mapper/*.xml
+
+#端口号配置
+server:
+    port: 8082
+
+    #FastDFS文件服务器的主机名
+fastdfs:
+    nginx:
+        host:
+
+
