@@ -5,6 +5,7 @@ import com.alibaba.excel.EasyExcel;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -158,6 +159,7 @@ public class GroupMsgContentServiceImpl implements GroupMsgContentService {
       messageV1s.add((MessageV1) map.get(messageId));
     }
     int size = messageV1s.size() > 100 ? 100 : messageV1s.size();
+    messageV1s.sort(Comparator.comparing(MessageV1::getSendTime));
     return messageV1s.subList(0, size);
   }
 }
