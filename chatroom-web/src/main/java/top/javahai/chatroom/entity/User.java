@@ -1,9 +1,12 @@
 package top.javahai.chatroom.entity;
 
+import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.annotation.*;
+import java.util.Date;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
+import org.apache.ibatis.type.JdbcType;
 
 /**
  * 用户实体类
@@ -53,7 +56,8 @@ public class User {
    * 创建时间
    */
   @TableField(fill = FieldFill.INSERT)
-  private LocalDateTime createTime;
+//  @TableField(value = "create_time", jdbcType = JdbcType.TIMESTAMP)
+  private Date createTime;
 
   /**
    * 创建人
@@ -65,7 +69,7 @@ public class User {
    * 更新时间
    */
   @TableField(fill = FieldFill.INSERT_UPDATE)
-  private LocalDateTime modifyTime;
+  private Date modifyTime;
 
   /**
    * 更新人
