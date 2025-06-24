@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @date 2020/6/16 - 12:45
  */
 @SpringBootApplication
-@MapperScan("top.javahai.chatroom.dao")
+@MapperScan("top.javahai.chatroom.mapper")
 @EnableScheduling
 public class ChatroomWebApplication {
   public static void main(String[] args) {

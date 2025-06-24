@@ -45,6 +45,16 @@ public class LoginController {
     return KqRespEntity.success(MapUtil.of("token", token));
   }
 
+  @PostMapping("/signup")
+  public KqRespEntity signup(
+    HttpServletRequest request, @RequestParam String verifycode, @RequestParam String username,
+    @RequestParam String password,
+    @RequestParam String passwordtoo
+  ) {
+    loginService.signup(request, verifycode, username, password, passwordtoo);
+    return KqRespEntity.SUCCESS;
+  }
+
   @GetMapping("/users")
   public KqRespEntity getUsers(String currentUsername) {
     return KqRespEntity.success(loginService.getUsers(currentUsername));

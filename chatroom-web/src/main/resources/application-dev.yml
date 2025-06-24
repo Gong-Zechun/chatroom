@@ -46,11 +46,11 @@ redisson:
         connection-minimum-idle-size: 10
 
 #sql日志显示
-mybatis:
-    configuration:
-        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-    #mapper文件位置配置
-        mapper-locations: classpath:mapper/*.xml
+#mybatis:
+#    configuration:
+#        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#    #mapper文件位置配置
+#        mapper-locations: classpath:mapper/*.xml
 
 #端口号配置
 server:
@@ -60,5 +60,20 @@ server:
 fastdfs:
     nginx:
         host:
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 开启SQL日志
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto # 主键策略
+      field-strategy: not_empty
+      table-underline: true
+      logic-delete-field: isDeleted # 逻辑删除字段名
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+  mapper-locations: classpath:mapper/*.xml
 
 

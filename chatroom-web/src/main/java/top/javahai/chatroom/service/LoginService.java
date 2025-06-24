@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.DigestUtil;
+import cn.hutool.crypto.digest.MD5;
 import com.google.common.collect.Lists;
 import java.util.HashMap;
 import java.util.List;
@@ -23,21 +25,41 @@ public class LoginService {
 
   @Autowired
   private RedissonUtils redissonUtils;
+  @Autowired
+  private UserServiceImpl userService;
 
   public String login(HttpServletRequest request, @RequestParam String verifycode, @RequestParam String username) {
+//    String sessionCaptcha = (String) request.getSession().getAttribute("captcha");
+//    checkSessionCaptcha(sessionCaptcha);
+//    checkIfVerifycodeEqualsSessionCaptcha(verifycode, sessionCaptcha);
+//    checkUsernameIsLegal(username);
+//
+//    request.getSession().setAttribute("username", username);
+//    request.getSession().setAttribute("headpic", headpic);
+//
+//    String clientIP = request.getRemoteHost();
+//    String token = createToken(username, headpic, clientIP);
+//    saveUserToken(username, token);
+    return "token";
+  }
+
+  /**
+   * 注册-ing
+   */
+  public String signup(
+    HttpServletRequest request, @RequestParam String verifycode, @RequestParam String username,
+    @RequestParam String password,
+    @RequestParam String passwordtoo
+  ) {
     String sessionCaptcha = (String) request.getSession().getAttribute("captcha");
     checkSessionCaptcha(sessionCaptcha);
     checkIfVerifycodeEqualsSessionCaptcha(verifycode, sessionCaptcha);
     checkUsernameIsLegal(username);
+    checkPasswordIsLegal(password, passwordtoo);
 
-    request.getSession().setAttribute("username", username);
-    String headpic = getRandomHeadPic();
-    request.getSession().setAttribute("headpic", headpic);
-
-    String clientIP = request.getRemoteHost();
-    String token = createToken(username, headpic, clientIP);
-    saveUserToken(username, token);
-    return token;
+    String headpic = userService.getRandomHeadPic();
+    userService.insert(username, DigestUtil.md5Hex(password), headpic);
+    return createToken(username, headpic, request.getRemoteHost());
   }
 
   private void checkSessionCaptcha(String sessionCaptcha) {
@@ -57,14 +79,20 @@ public class LoginService {
       throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户名不得大于20个字符！").notFillInStackTrace();
     }
 
-    if (StrUtil.isNotBlank(getUserToken(username))) {
+    User user = userService.getUserByUsername(username);
+    if (user != null) {
       throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户名重复，请重输！").notFillInStackTrace();
     }
   }
 
-  public String getRandomHeadPic() {
-    int index = RandomUtil.randomInt(1, 11);
-    return "assets/images/xs/avatar" + index + ".jpg";
+  private void checkPasswordIsLegal(String password, String passwordtoo) {
+    if (!password.equals(passwordtoo)) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "两次输入的密码不一致！").notFillInStackTrace();
+    }
+
+    if (password.length() > 20) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "密码长度不得大于20个字符！").notFillInStackTrace();
+    }
   }
 
   private String createToken(String username, String headpic, String clientIP) {
@@ -113,7 +141,7 @@ public class LoginService {
       User user = new User();
       user.setUsername(tokenMap.get("username").toString());
       user.setHeadpic(tokenMap.get("headpic").toString());
-      user.setClientIP(tokenMap.get("clientip").toString());
+      user.setClientip(tokenMap.get("clientip").toString());
       users.add(user);
     }
 
