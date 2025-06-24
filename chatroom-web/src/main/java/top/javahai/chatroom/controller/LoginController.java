@@ -39,9 +39,10 @@ public class LoginController {
 
   @PostMapping("/login")
   public KqRespEntity login(
-    HttpServletRequest request, @RequestParam String verifycode, @RequestParam String username
+    HttpServletRequest request, @RequestParam String verifycode, @RequestParam String username,
+    @RequestParam String password
   ) {
-    String token = loginService.login(request, verifycode, username);
+    String token = loginService.login(request, verifycode, username, password);
     return KqRespEntity.success(MapUtil.of("token", token));
   }
 

@@ -28,38 +28,49 @@ public class LoginService {
   @Autowired
   private UserServiceImpl userService;
 
-  public String login(HttpServletRequest request, @RequestParam String verifycode, @RequestParam String username) {
-//    String sessionCaptcha = (String) request.getSession().getAttribute("captcha");
-//    checkSessionCaptcha(sessionCaptcha);
-//    checkIfVerifycodeEqualsSessionCaptcha(verifycode, sessionCaptcha);
-//    checkUsernameIsLegal(username);
-//
-//    request.getSession().setAttribute("username", username);
-//    request.getSession().setAttribute("headpic", headpic);
-//
-//    String clientIP = request.getRemoteHost();
-//    String token = createToken(username, headpic, clientIP);
-//    saveUserToken(username, token);
-    return "token";
+  public String login(HttpServletRequest request, String verifycode,  String username, String password) {
+    String sessionCaptcha = (String) request.getSession().getAttribute("captcha");
+    checkSessionCaptcha(sessionCaptcha);
+    checkIfVerifycodeEqualsSessionCaptcha(verifycode, sessionCaptcha);
+
+    checkUsernameIsLegal(username);
+    checkPasswordIsLegal(password);
+
+    User temp = userService.getUserByUsername(username);
+    if (temp == null) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户不存在！").notFillInStackTrace();
+    }
+
+    User user = userService.getUserByLoginInfo(username, password);
+    if (user == null) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "密码错误！").notFillInStackTrace();
+    }
+
+    request.getSession().setAttribute("username", user.getUsername());
+    request.getSession().setAttribute("headpic", user.getHeadpic());
+    String clientIP = request.getRemoteHost();
+    String token = createToken(username, user.getHeadpic(), request.getRemoteHost());
+    saveUserToken(username, token);
+    return token;
   }
 
   /**
    * 注册-ing
    */
-  public String signup(
-    HttpServletRequest request, @RequestParam String verifycode, @RequestParam String username,
-    @RequestParam String password,
-    @RequestParam String passwordtoo
+  public void signup(
+    HttpServletRequest request, String verifycode, String username,
+    String password,
+    String passwordtoo
   ) {
     String sessionCaptcha = (String) request.getSession().getAttribute("captcha");
     checkSessionCaptcha(sessionCaptcha);
     checkIfVerifycodeEqualsSessionCaptcha(verifycode, sessionCaptcha);
     checkUsernameIsLegal(username);
+    checkUsernameIsDuplicate(username);
     checkPasswordIsLegal(password, passwordtoo);
 
     String headpic = userService.getRandomHeadPic();
     userService.insert(username, DigestUtil.md5Hex(password), headpic);
-    return createToken(username, headpic, request.getRemoteHost());
   }
 
   private void checkSessionCaptcha(String sessionCaptcha) {
@@ -75,10 +86,15 @@ public class LoginService {
   }
 
   private void checkUsernameIsLegal(String username) {
+    if (StrUtil.isBlank(username)) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户名不能为空！").notFillInStackTrace();
+    }
     if (username.length() > 20) {
       throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户名不得大于20个字符！").notFillInStackTrace();
     }
+  }
 
+  private void checkUsernameIsDuplicate(String username) {
     User user = userService.getUserByUsername(username);
     if (user != null) {
       throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户名重复，请重输！").notFillInStackTrace();
@@ -86,12 +102,20 @@ public class LoginService {
   }
 
   private void checkPasswordIsLegal(String password, String passwordtoo) {
+    checkPasswordIsLegal(password);
+    checkPasswordIsLegal(passwordtoo);
     if (!password.equals(passwordtoo)) {
       throw new KqException(HttpStatus.BAD_REQUEST.value(), "两次输入的密码不一致！").notFillInStackTrace();
     }
+  }
 
-    if (password.length() > 20) {
-      throw new KqException(HttpStatus.BAD_REQUEST.value(), "密码长度不得大于20个字符！").notFillInStackTrace();
+  private void checkPasswordIsLegal(String password) {
+    if (StrUtil.isBlank(password)) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "密码不能为空！").notFillInStackTrace();
+    }
+
+    if (password.length() > 10) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "密码长度不得大于10个字符！").notFillInStackTrace();
     }
   }
 

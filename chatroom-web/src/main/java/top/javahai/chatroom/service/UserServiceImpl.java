@@ -2,6 +2,7 @@ package top.javahai.chatroom.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,13 @@ public class UserServiceImpl {
   public User getUserByUsername(String username) {
     QueryWrapper<User> wrapper = new QueryWrapper<>();
     wrapper.eq("username", username);
+    return userMapper.selectOne(wrapper);
+  }
+
+  public User getUserByLoginInfo(String username, String password) {
+    QueryWrapper<User> wrapper = new QueryWrapper<>();
+    wrapper.eq("username", username);
+    wrapper.eq("password", DigestUtil.md5Hex(password));
     return userMapper.selectOne(wrapper);
   }
 
