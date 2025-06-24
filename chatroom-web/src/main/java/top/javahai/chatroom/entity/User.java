@@ -1,16 +1,21 @@
 package top.javahai.chatroom.entity;
 
-import cn.hutool.core.date.DateTime;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import java.time.LocalDateTime;
 
 /**
  * 用户实体类
  */
 @Data
+@Accessors(chain = true)
+@TableName("user")
 public class User {
   /**
    * 用户ID
    */
+  @TableId(type = IdType.AUTO)
   private Integer id;
 
   /**
@@ -19,12 +24,12 @@ public class User {
   private String username;
 
   /**
-   * 密码
+   * 密码(存储加密后的密码)
    */
   private String password;
 
   /**
-   * 用户头像
+   * 用户头像URL
    */
   private String headpic;
 
@@ -34,32 +39,37 @@ public class User {
   private String clientip;
 
   /**
-   * 是否被锁定 (0-未锁定, 1-已锁定)
+   * 是否被锁定(0-未锁定,1-已锁定)
    */
   private Integer isLocked;
 
   /**
-   * 是否被删除 (0-未删除, 1-已删除)
+   * 逻辑删除标志(0-未删除,1-已删除)
    */
+  @TableLogic
   private Integer isDeleted;
 
   /**
    * 创建时间
    */
-  private DateTime createTime;
+  @TableField(fill = FieldFill.INSERT)
+  private LocalDateTime createTime;
 
   /**
-   * 创建者
+   * 创建人
    */
+  @TableField(fill = FieldFill.INSERT)
   private String createBy;
 
   /**
-   * 修改时间 (根据当前时间戳更新)
+   * 更新时间
    */
-  private DateTime modifyTime;
+  @TableField(fill = FieldFill.INSERT_UPDATE)
+  private LocalDateTime modifyTime;
 
   /**
-   * 更新者
+   * 更新人
    */
+  @TableField(fill = FieldFill.INSERT_UPDATE)
   private String modifyBy;
 }

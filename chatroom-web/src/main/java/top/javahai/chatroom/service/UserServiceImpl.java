@@ -3,6 +3,7 @@ package top.javahai.chatroom.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import java.util.Date;
 import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 import top.javahai.chatroom.entity.User;
@@ -19,9 +20,8 @@ public class UserServiceImpl {
     user.setUsername(username);
     user.setPassword(password);
     user.setHeadpic(headpic);
-    user.setClientip(null);
-    user.setCreateTime(DateUtil.date());
-    user.setModifyTime(DateUtil.date());
+    user.setCreateTime(DateUtil.toLocalDateTime(new Date()));
+    user.setModifyTime(DateUtil.toLocalDateTime(new Date()));
     userMapper.insert(user);
   }
 
