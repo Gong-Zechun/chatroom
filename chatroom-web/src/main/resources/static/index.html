@@ -17,6 +17,7 @@
 	<script src="emoji-mart/browser.js"></script>
 	<script src="assets/js/sockjs.min.js"></script>
 	<script src="assets/js/stomp.min.js"></script>
+	<script src="assets/js/common.js"></script>
 	<style>
 		.chat-content {
 			overflow-y: auto; /* 添加垂直滚动条 */
@@ -356,67 +357,7 @@
 </script>
 
 <script>
-	$(document).ready(function () {
-		// 获取用户列表的容器
-		const userList = $("#user-list");
-		const currentUsername = sessionStorage.getItem('username');
-		const token = sessionStorage.getItem('token');
-
-		// 判断用户名是否为空
-		if (!currentUsername) {
-			// 如果用户名为空，跳转到登录页面
-			window.location.href = "/login.html";
-		}
-
-		// 发起请求获取用户列表
-		$.ajax({
-			url: "/users?currentUsername=" + currentUsername, // 后端接口地址
-			method: "GET",
-			success: function (data) {
-				console.log(data.data);
-				console.log("currentUsername:" + currentUsername);
-				$("#users-total-num").append("成员列表（" + data.data.length + "人）");
-
-				// 渲染用户列表
-				$.each(data.data, function (index, user) {
-					const userItem = $("<li></li>").addClass("online");
-
-					const hoverAction = $("<div></div>").addClass("hover_action");
-					// 			hoverAction.html(`
-					//   <button type="button" class="btn btn-link text-info"><i class="zmdi zmdi-eye"></i></button>
-					//   <button type="button" class="btn btn-link text-warning"><i class="zmdi zmdi-star"></i></button>
-					//   <button type="button" class="btn btn-link text-danger"><i class="zmdi zmdi-delete"></i></button>
-					// `);
-					userItem.append(hoverAction);
-
-					const userCard = $("<a></a>").addClass("card");
-					userCard.html(`
-          <div class="card-body">
-            <div class="media">
-              <div class="avatar me-3">
-                <span class="status rounded-circle"></span>
-                <img class="avatar rounded-circle" src="${user.headpic}" alt="avatar">
-              </div>
-              <div class="media-body overflow-hidden">
-                <div class="d-flex align-items-center mb-1">
-                  <h6 class="text-truncate mb-0 me-auto">${user.username}</h6>
-<!--                  <p class="small text-muted text-nowrap ms-4 mb-0">${user.lastMessageTime}</p>-->
-                </div>
-<!--                这个地方以后可以放个性签名-->
-                      <div class="text-truncate">最近活跃：${user.lastVisitTimeStr}</div>
-              </div>
-            </div>
-          </div>
-        `);
-					userItem.append(userCard);
-					userList.append(userItem);
-				});
-			},
-			error: function (xhr, status, error) {
-				console.error("There was a problem with the fetch operation:", error);
-			}
-		});
-	});
+	refreshUserList();
 </script>
 
 <script>
@@ -523,6 +464,7 @@
 				if (content.body) {
 					console.log('Received message:', content.body);
 					displayMessage(content.body);
+					refreshUserList();
 					$('.chat-content').scrollTop($('.chat-content')[0].scrollHeight);
 				} else {
 					console.error('No message body received');
