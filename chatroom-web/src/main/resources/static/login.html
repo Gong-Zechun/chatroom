@@ -86,6 +86,21 @@
 
 <script>
 	$(document).ready(function () {
+		// 获取输入框和发送按钮
+		const messageInput = $('#verifycode');
+
+		// 监听输入框的 keypress 事件
+		messageInput.on('keypress', function (e) {
+			// 检测是否按下了回车键（键码为 13）
+			if (e.which === 13) {
+				// 阻止默认行为（防止换行）
+				e.preventDefault();
+				// 触发发送按钮的点击事件
+				$("#loginButton").click();
+			}
+		});
+
+
 		$("#loginButton").click(function () {
 			// 创建 FormData 对象
 			const formData = new FormData();
