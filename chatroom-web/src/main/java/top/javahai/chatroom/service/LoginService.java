@@ -2,11 +2,11 @@ package top.javahai.chatroom.service;
 
 import static top.javahai.chatroom.constant.GlobalConstants.*;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class LoginService {
 
     request.getSession().setAttribute("username", user.getUsername());
     request.getSession().setAttribute("headpic", user.getHeadpic());
-    String token = createToken(username, user.getHeadpic(), request.getRemoteHost());
+    String token = createToken(user.getId().toString(), username, user.getHeadpic(), request.getRemoteHost());
 
     saveUserInfoToRedis(refreshLastVisitTime(user), token);
     return token;
@@ -100,7 +100,7 @@ public class LoginService {
     redissonUtils.putToHash(infoKey, "id", userVO.getId());
     redissonUtils.putToHash(infoKey, "username", userVO.getUsername());
     redissonUtils.putToHash(infoKey, "headpic", userVO.getHeadpic());
-    redissonUtils.putToHash(infoKey, "lastVisitTime", DateUtil.date());
+    redissonUtils.putToHash(infoKey, "lastVisitTimeStr", DateUtil.date().toString());
 
     redissonUtils.expire(infoKey, TOKEN_EXPIRE, TOKEN_EXPIRE_UNIT);
   }
@@ -145,8 +145,7 @@ public class LoginService {
     userVO.setId(Integer.parseInt(map.get("id").toString()));
     userVO.setUsername((String) map.get("username"));
     userVO.setHeadpic((String) map.get("headpic"));
-    userVO.setLastVisitTime((Date) map.get("lastVisitTime"));
-    userVO.setLastVisitTimeStr(map.get("lastVisitTime").toString());
+    userVO.setLastVisitTimeStr(map.get("lastVisitTimeStr").toString());
     return userVO;
   }
 
@@ -183,6 +182,13 @@ public class LoginService {
       String infoKey = String.format(USER_INFO_KEY, user.getId().toString());
       redissonUtils.expire(infoKey, TOKEN_EXPIRE, TOKEN_EXPIRE_UNIT);
     }
+  }
+
+  public void refreshUserInfoInRedis(String token) {
+    Map<String, Object> map = JwtUtil.parseToken(token);
+    String infoKey = String.format(USER_INFO_KEY, map.get("userid").toString());
+    Map<String, Object> userinfo = redissonUtils.getHash(infoKey);
+    saveUserInfo(BeanUtil.toBean(userinfo, UserVO.class));
   }
 
   /**
@@ -250,27 +256,13 @@ public class LoginService {
     }
   }
 
-  private String createToken(String username, String headpic, String clientIP) {
+  private String createToken(String userid, String username, String headpic, String clientIP) {
     Map<String, Object> payload = new HashMap<>();
+    payload.put("userid", userid);
     payload.put("username", username);
     payload.put("headpic", headpic);
     payload.put("clientip", clientIP);
     return JwtUtil.createToken(payload);
-  }
-
-  // 添加用户 Token
-  public void saveUserToken(String username, String token) {
-    redissonUtils.putToHash("userTokens", username, token);
-  }
-
-  // 获取用户 Token
-  public String getUserToken(String username) {
-    return (String) redissonUtils.getFromHash("userTokens", username);
-  }
-
-  // 删除用户 Token
-  public void deleteUserToken(String username) {
-    redissonUtils.removeFromHash("userTokens", username);
   }
 
   public static void moveElementToFront(List<UserVO> list, String currentUsername) {

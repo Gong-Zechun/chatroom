@@ -56,6 +56,7 @@ public class ChatController {
 
     saveGroupMsgs(messageV1);
     loginService.refreshToken(token);
+    loginService.refreshUserInfoInRedis(token);
     return messageV1;
   }
 
