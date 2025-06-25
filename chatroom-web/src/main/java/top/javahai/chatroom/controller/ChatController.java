@@ -10,6 +10,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import top.javahai.chatroom.constant.GlobalConstants;
 import top.javahai.chatroom.newEntity.MessageV1;
+import top.javahai.chatroom.service.LoginService;
 import top.javahai.chatroom.utils.JwtUtil;
 import top.javahai.chatroom.utils.RedissonUtils;
 
@@ -18,6 +19,8 @@ public class ChatController {
 
   @Autowired
   private RedissonUtils redissonUtils;
+  @Autowired
+  private LoginService loginService;
 
   /**
    * 群聊
@@ -52,6 +55,7 @@ public class ChatController {
     messageV1.setSendTimeStr(DateUtil.date().toString());
 
     saveGroupMsgs(messageV1);
+    loginService.refreshToken(token);
     return messageV1;
   }
 

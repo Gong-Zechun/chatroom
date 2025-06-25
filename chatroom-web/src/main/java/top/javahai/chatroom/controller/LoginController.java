@@ -63,4 +63,13 @@ public class LoginController {
   public KqRespEntity getUsers(String currentUsername) {
     return KqRespEntity.success(loginService.getAllUsers(currentUsername));
   }
+
+  /**
+   * 获取用户列表
+   */
+  @PostMapping("/checkToken")
+  public KqRespEntity checkToken(String token) {
+    loginService.checkToken(token);
+    return KqRespEntity.SUCCESS;
+  }
 }

@@ -284,4 +284,15 @@ public class LoginService {
       }
     }
   }
+
+  public void checkToken(String token) {
+    if (StrUtil.isBlank(token)) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "登录token为空，，请重新登录！").notFillInStackTrace();
+    }
+
+    User user = getLoginUser(token);
+    if (user == null) {
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "token已过期，请重新登录！").notFillInStackTrace();
+    }
+  }
 }
