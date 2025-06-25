@@ -490,4 +490,10 @@ public class GlobalConstants {
 
   // 内部约定的token值, 用于自动化部署等
   public static final String TOKEN_ROOT = "__root_token__";
+
+  // Key命名规范
+  public static final String USER_TOKEN_KEY = "user:token:%s";       // token -> 用户信息
+  public static final String USER_LOGIN_KEY = "user:login:%s";      // userId -> token
+  public static final String USER_INFO_KEY = "user:info:%s";        // 用户详细信息
+  public static final String USER_IDS_KEY = "user:ids";             // 所有用户ID集合
 }

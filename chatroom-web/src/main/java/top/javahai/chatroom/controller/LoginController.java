@@ -56,8 +56,11 @@ public class LoginController {
     return KqRespEntity.SUCCESS;
   }
 
+  /**
+   * 获取用户列表
+   */
   @GetMapping("/users")
   public KqRespEntity getUsers(String currentUsername) {
-    return KqRespEntity.success(loginService.getUsers(currentUsername));
+    return KqRespEntity.success(loginService.getAllUsers(currentUsername));
   }
 }

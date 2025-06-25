@@ -1,21 +1,26 @@
 package top.javahai.chatroom.service;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.RandomUtil;
+import static top.javahai.chatroom.constant.GlobalConstants.*;
+
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
-import cn.hutool.crypto.digest.MD5;
-import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 import top.javahai.chatroom.entity.User;
+import top.javahai.chatroom.entity.UserVO;
 import top.javahai.chatroom.exception.KqException;
 import top.javahai.chatroom.utils.JwtUtil;
 import top.javahai.chatroom.utils.RedissonUtils;
@@ -27,6 +32,10 @@ public class LoginService {
   private RedissonUtils redissonUtils;
   @Autowired
   private UserServiceImpl userService;
+
+  // Token过期时间(单位：分钟)
+  private static final long TOKEN_EXPIRE = 10;
+  private static final TimeUnit TOKEN_EXPIRE_UNIT = TimeUnit.MINUTES;
 
   public String login(HttpServletRequest request, String verifycode,  String username, String password) {
     String sessionCaptcha = (String) request.getSession().getAttribute("captcha");
@@ -48,10 +57,132 @@ public class LoginService {
 
     request.getSession().setAttribute("username", user.getUsername());
     request.getSession().setAttribute("headpic", user.getHeadpic());
-    String clientIP = request.getRemoteHost();
     String token = createToken(username, user.getHeadpic(), request.getRemoteHost());
-    saveUserToken(username, token);
+
+    saveUserInfoToRedis(refreshLastVisitTime(user), token);
     return token;
+  }
+
+  public UserVO refreshLastVisitTime(User user) {
+    UserVO userVO = new UserVO();
+    BeanUtils.copyProperties(user, userVO);
+    userVO.setLastVisitTime(DateUtil.date());
+    return userVO;
+  }
+
+  /**
+   * 登录成功后保存用户信息到Redis
+   */
+  public void saveUserInfoToRedis(UserVO userVO, String token) {
+    // 1. 存储token -> 用户信息
+    String tokenKey = String.format(USER_TOKEN_KEY, token);
+    redissonUtils.set(tokenKey, userVO);
+    redissonUtils.expire(tokenKey, TOKEN_EXPIRE, TOKEN_EXPIRE_UNIT);
+
+    // 2. 存储userId -> token映射(用于单点登录)
+//    String loginKey = String.format(USER_LOGIN_KEY, user.getId());
+//    redissonUtils.set(loginKey, token);
+//    redissonUtils.expire(loginKey, TOKEN_EXPIRE, TOKEN_EXPIRE_UNIT);
+
+    // 3. 存储用户基本信息到Hash
+    saveUserInfo(userVO);
+
+    // 4. 将用户ID添加到全局集合
+    redissonUtils.addToSet(USER_IDS_KEY, userVO.getId().toString());
+  }
+
+  /**
+   * 保存/更新用户基本信息
+   */
+  public void saveUserInfo(UserVO userVO) {
+    String infoKey = String.format(USER_INFO_KEY, userVO.getId().toString());
+
+    redissonUtils.putToHash(infoKey, "id", userVO.getId());
+    redissonUtils.putToHash(infoKey, "username", userVO.getUsername());
+    redissonUtils.putToHash(infoKey, "headpic", userVO.getHeadpic());
+    redissonUtils.putToHash(infoKey, "lastVisitTime", DateUtil.date());
+
+    redissonUtils.expire(infoKey, TOKEN_EXPIRE, TOKEN_EXPIRE_UNIT);
+  }
+
+  public User getLoginUser(String token) {
+    String key = String.format(USER_TOKEN_KEY, token);
+    return (User) redissonUtils.get(key);
+  }
+
+  /**
+   * 获取所有用户信息
+   *
+   * @return 用户列表
+   */
+  public List<UserVO> getAllUsers(String currentUsername) {
+    // 1. 获取所有用户ID
+    Set<Object> userIds = redissonUtils.getSet(USER_IDS_KEY);
+    if (userIds == null || userIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    // 2. 批量获取用户信息
+    List<UserVO> list =  userIds.stream()
+      .map(userId -> {
+        String infoKey = String.format(USER_INFO_KEY, ((Object[]) userId)[0]);
+        Map<String, Object> userMap = redissonUtils.getHash(infoKey);
+        return convertMapToUser(userMap);
+      })
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+
+    moveElementToFront(list, currentUsername);
+    return list;
+  }
+
+  private UserVO convertMapToUser(Map<String, Object> map) {
+    if (map == null || map.isEmpty()) {
+      return null;
+    }
+
+    UserVO userVO  = new UserVO();
+    userVO.setId(Integer.parseInt(map.get("id").toString()));
+    userVO.setUsername((String) map.get("username"));
+    userVO.setHeadpic((String) map.get("headpic"));
+    userVO.setLastVisitTime((Date) map.get("lastVisitTime"));
+    userVO.setLastVisitTimeStr(map.get("lastVisitTime").toString());
+    return userVO;
+  }
+
+  /**
+   * 删除用户登录信息
+   * @param token 用户token
+   */
+  public void removeLoginUser(String token) {
+    User user = getLoginUser(token);
+    if (user != null) {
+      // 1. 删除token映射
+      String tokenKey = String.format(USER_TOKEN_KEY, token);
+      redissonUtils.delete(tokenKey);
+
+      // 2. 删除userId->token映射
+      String loginKey = String.format(USER_LOGIN_KEY, user.getId());
+      redissonUtils.delete(loginKey);
+    }
+  }
+
+  /**
+   * 刷新token有效期
+   * @param token 用户token
+   */
+  public void refreshToken(String token) {
+    String tokenKey = String.format(USER_TOKEN_KEY, token);
+    redissonUtils.expire(tokenKey, TOKEN_EXPIRE, TOKEN_EXPIRE_UNIT);
+
+    User user = getLoginUser(token);
+    if (user != null) {
+      String loginKey = String.format(USER_LOGIN_KEY, user.getId());
+      redissonUtils.expire(loginKey, TOKEN_EXPIRE, TOKEN_EXPIRE_UNIT);
+
+      String infoKey = String.format(USER_INFO_KEY, user.getId().toString());
+      redissonUtils.expire(infoKey, TOKEN_EXPIRE, TOKEN_EXPIRE_UNIT);
+    }
   }
 
   /**
@@ -142,42 +273,12 @@ public class LoginService {
     redissonUtils.removeFromHash("userTokens", username);
   }
 
-  public List<User> getUsers(String currentUsername) {
-    List<User> list = getUsers();
-    if (CollectionUtil.isEmpty(list)) {
-      throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户列表为空！").notFillInStackTrace();
-    }
-    moveElementToFront(list, currentUsername);
-    return list;
-  }
-
-  public List<User> getUsers() {
-    Map<String, Object> map = redissonUtils.getHash("userTokens");
-    if (MapUtil.isEmpty(map)) {
-      return Lists.newArrayList();
-    }
-
-    List<User> users = Lists.newArrayList();
-    for (String username : map.keySet()) {
-      String token = map.get(username).toString();
-      Map<String, Object> tokenMap = JwtUtil.parseToken(token);
-
-      User user = new User();
-      user.setUsername(tokenMap.get("username").toString());
-      user.setHeadpic(tokenMap.get("headpic").toString());
-      user.setClientip(tokenMap.get("clientip").toString());
-      users.add(user);
-    }
-
-    return users;
-  }
-
-  public static void moveElementToFront(List<User> list, String currentUsername) {
+  public static void moveElementToFront(List<UserVO> list, String currentUsername) {
     // 遍历列表，查找符合条件的元素
     for (int i = 0; i < list.size(); i++) {
       if (list.get(i).getUsername().equals(currentUsername)) {
         // 将符合条件的元素移动到第一个位置
-        User element = list.remove(i); // 移除该元素
+        UserVO element = list.remove(i); // 移除该元素
         list.add(0, element); // 添加到第一个位置
         break; // 找到后退出循环
       }
