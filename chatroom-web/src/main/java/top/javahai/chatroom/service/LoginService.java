@@ -7,6 +7,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class LoginService {
 
     User temp = userService.getUserByUsername(username);
     if (temp == null) {
-      throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户不存在！").notFillInStackTrace();
+      throw new KqException(HttpStatus.BAD_REQUEST.value(), "用户不存在，请注册！").notFillInStackTrace();
     }
 
     User user = userService.getUserByLoginInfo(username, password);
@@ -130,6 +131,7 @@ public class LoginService {
         return convertMapToUser(userMap);
       })
       .filter(Objects::nonNull)
+      .sorted(Comparator.comparing(UserVO::getLastVisitTimeStr).reversed())
       .collect(Collectors.toList());
 
     moveElementToFront(list, currentUsername);
