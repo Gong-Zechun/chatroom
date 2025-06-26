@@ -55,6 +55,10 @@ public class LoginService {
     if (user == null) {
       throw new KqException(HttpStatus.BAD_REQUEST.value(), "密码错误！").notFillInStackTrace();
     }
+    if (user.getIsLocked().toString().equals("1")) {
+      throw new KqException(
+        HttpStatus.BAD_REQUEST.value(), "账户被封，请注意你的言行！需要解封你就联系邮箱：1713089020@qq.com！").notFillInStackTrace();
+    }
 
     request.getSession().setAttribute("username", user.getUsername());
     request.getSession().setAttribute("headpic", user.getHeadpic());
@@ -208,8 +212,13 @@ public class LoginService {
     checkUsernameIsDuplicate(username);
     checkPasswordIsLegal(password, passwordtoo);
 
-    String headpic = userService.getRandomHeadPic();
-    userService.insert(username, DigestUtil.md5Hex(password), headpic);
+    String headpic;
+    if (username.equals("管理员")) {
+      headpic = "assets/images/xs/admin.jpg";
+    } else {
+      headpic = userService.getRandomHeadPic();
+    }
+    userService.insert(username, DigestUtil.md5Hex(password), headpic, request.getRemoteHost());
   }
 
   private void checkSessionCaptcha(String sessionCaptcha) {

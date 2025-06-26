@@ -15,12 +15,12 @@ public class UserServiceImpl {
   @Resource
   private UserMapper userMapper;
 
-  public void insert(String username, String password, String headpic) {
+  public void insert(String username, String password, String headpic, String clientip) {
     User user = new User();
     user.setUsername(username);
     user.setPassword(password);
     user.setHeadpic(headpic);
-    user.setClientip(null);
+    user.setClientip(clientip);
     user.setCreateTime(DateUtil.date());
     user.setModifyTime(DateUtil.date());
     userMapper.insert(user);
