@@ -458,6 +458,8 @@
 <script>
 	$(document).ready(function () {
 		const currentToken = sessionStorage.getItem('token');
+		const usernameInSession = sessionStorage.getItem('username');
+		const chatMessages = $('.chat-messages');
 
 		// 创建一个 SockJS 客户端实例
 		const socket = new SockJS('/ws/chat');
@@ -471,21 +473,19 @@
 
 			// 订阅 /topic/chat，接收群聊消息
 			stompClient.subscribe('/topic/chat', function (content) {
-				console.log('content: ' + content);
-				// 检查消息内容
+				console.log('Received message:', content);
 				if (content.body) {
-					console.log('Received message:', content.body);
-					displayMessage(content.body);
+					const message = JSON.parse(content.body);
+					appendMessage(message);
 					refreshUserList();
-					$('.chat-content').scrollTop($('.chat-content')[0].scrollHeight);
-				} else {
-					console.error('No message body received');
+					// 滚动到底部
+					chatMessages.scrollTop(chatMessages[0].scrollHeight);
 				}
 			});
 
 			// 获取输入框和发送按钮
-			const messageInput = $('#message');
-			const sendButton = $('#sendButton');
+			const messageInput = $('.message-input');
+			const sendButton = $('.send-button');
 
 			// 监听输入框的 keypress 事件
 			messageInput.on('keypress', function (e) {
@@ -493,20 +493,46 @@
 				if (e.which === 13) {
 					// 阻止默认行为（防止换行）
 					e.preventDefault();
-					// 触发发送按钮的点击事件
-					sendButton.click();
+					// 触发发送
+					sendMessage();
 				}
 			});
 
-			// 发送消息到服务器
-			$('#sendButton').click(function () {
-				var message = $('#message').val();
+			// 发送按钮点击事件
+			sendButton.click(sendMessage);
+
+			function sendMessage() {
+				const message = messageInput.val().trim();
 				if (message) {
-					console.log('#sendButton message: ' + message);
+					console.log('Sending message:', message);
 					stompClient.send("/app/send", {}, currentToken + "--%--" + message);
-					$('#message').val(''); // 清空输入框
+					messageInput.val(''); // 清空输入框
 				}
-			});
+			}
+
+			function appendMessage(message) {
+				const isCurrentUser = usernameInSession === message.username;
+				const messageClass = isCurrentUser ? 'sent' : 'received';
+
+				const messageElement = $(`
+                    <div class="message ${messageClass}">
+                        <img class="user-avatar" src="${message.headpic || 'default-avatar.png'}"
+                             alt="${message.username}"
+                             onerror="this.src='default-avatar.png'">
+                        <div class="message-content-container">
+                            <div class="message-info">
+                                <span class="message-sender">${message.username}${isCurrentUser ? ' (我)' : ''}</span>
+                                <span class="message-time">${message.sendTimeStr}</span>
+                            </div>
+                            <div class="message-content">
+                                ${message.message}
+                            </div>
+                        </div>
+                    </div>
+                `);
+
+				chatMessages.append(messageElement);
+			}
 		}, function (error) {
 			// 处理连接错误
 			console.error('WebSocket connection error:', error);
@@ -515,72 +541,6 @@
 		stompClient.onerror = function (error) {
 			console.error('STOMP error:', error);
 		};
-
-		// 显示消息的函数
-		function displayMessage(content) {
-			content = JSON.parse(content);
-			console.log('#displayMessage username: ' + content.username);
-			const messageList = $('#message-list');
-			const usernameInSession = sessionStorage.getItem('username');
-			if (usernameInSession == content.username) {
-				messageList.append("<li class=\"  d-flex message right   \">\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t<div class=\"mr-lg-3 me-2\">\n"
-					+ "\t\t\t\t\t\t\t</div>\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t<div class=\"message-body\">\n"
-					+ "<img class=\"avatar sm rounded-circle b-orange\" src=\" " + content.headpic
-					+ "  \" alt=\"avatar\">"
-					+ "\t\t\t\t\t\t\t\t<span class=\"date-time text-muted\">" + content.username + ", "
-					+ content.sendTimeStr
-					+ "</span>\n"
-					+ "\t\t\t\t\t\t\t\t<div class=\"   message-row d-flex align-items-center justify-content-end   \">\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t\t\t<div class=\"message-content p-3\">\n"
-					+ "\t\t\t\t\t\t\t\t\t\t " + content.message + "  \n"
-					+ "\t\t\t\t\t\t\t\t\t</div>\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t\t\t<div class=\"dropdown\">\n"
-					+ "\t\t\t\t\t\t\t\t\t\t<a class=\"text-muted ms-1 p-2 text-muted\" href=\"#\" data-toggle=\"dropdown\"\n"
-					+ "\t\t\t\t\t\t\t\t\t\t   aria-haspopup=\"true\" aria-expanded=\"false\">\n"
-					+ "\t\t\t\t\t\t\t\t\t\t\t<i class=\"zmdi zmdi-more-vert\"></i>\n"
-					+ "\t\t\t\t\t\t\t\t\t\t</a>\n"
-					+ "\t\t\t\t\t\t\t\t\t\t<div class=\"dropdown-menu dropdown-menu-right\">\n"
-					+ "\t\t\t\t\t\t\t\t\t\t\t<a class=\"dropdown-item\" href=\"#\">删除</a>\n"
-					+ "\t\t\t\t\t\t\t\t\t\t</div>\n"
-					+ "\t\t\t\t\t\t\t\t\t</div>\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t\t</div>\n"
-					+ "\t\t\t\t\t\t\t</div>\n"
-					+ "\t\t\t\t\t\t</li>");
-			} else {
-				messageList.append("<li class=\"  d-flex message   \">\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t<div class=\"mr-lg-3 me-2\">\n"
-					+ "<img class=\"avatar sm rounded-circle b-orange\" src=\" " + content.headpic
-					+ "  \" alt=\"avatar\">"
-					+ "\t\t\t\t\t\t\t</div>\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t<div class=\"message-body\">\n"
-					+ "\t\t\t\t\t\t\t\t<span class=\"date-time text-muted\">" + content.username + ", "
-					+ content.sendTimeStr
-					+ "</span>\n"
-					+ "\t\t\t\t\t\t\t\t<div class=\"   message-row d-flex align-items-center   \">\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t\t\t<div class=\"message-content p-3\">\n"
-					+ "\t\t\t\t\t\t\t\t\t\t " + content.message + "  \n"
-					+ "\t\t\t\t\t\t\t\t\t</div>\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t\t\t<div class=\"dropdown\">\n"
-					+ "\t\t\t\t\t\t\t\t\t\t<div class=\"dropdown-menu dropdown-menu-right\">\n"
-					+ "\t\t\t\t\t\t\t\t\t\t</div>\n"
-					+ "\t\t\t\t\t\t\t\t\t</div>\n"
-					+ "\n"
-					+ "\t\t\t\t\t\t\t\t</div>\n"
-					+ "\t\t\t\t\t\t\t</div>\n"
-					+ "\t\t\t\t\t\t</li>");
-			}
-		}
 	});
 </script>
 

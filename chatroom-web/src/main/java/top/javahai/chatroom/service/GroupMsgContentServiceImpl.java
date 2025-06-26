@@ -32,7 +32,7 @@ public class GroupMsgContentServiceImpl {
     for (String messageId : map.keySet()) {
       messageV1s.add((MessageV1) map.get(messageId));
     }
-    int size = messageV1s.size() > 500 ? 500 : messageV1s.size();
+    int size = Math.min(messageV1s.size(), 500);
     messageV1s.sort(Comparator.comparing(MessageV1::getSendTime));
     return messageV1s.subList(0, size);
   }
