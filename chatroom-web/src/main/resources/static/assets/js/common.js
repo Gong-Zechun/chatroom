@@ -31,67 +31,62 @@ $(document).ready(function() {
 
 function refreshUserList() {
   // 获取用户列表的容器
-  const userList = $("#user-list");
-  const userCountContainer = $("#users-total-num");
+  const userList = $(".user-list");
   const currentUsername = sessionStorage.getItem('username');
 
   // 判断用户名是否为空
   if (!currentUsername) {
-    // 如果用户名为空，跳转到登录页面
     window.location.href = "/login.html";
-    return; // 添加return防止继续执行
+    return;
   }
 
   // 发起请求获取用户列表
   $.ajax({
-    url: "/users?currentUsername=" + currentUsername, // 后端接口地址
+    url: "/users?currentUsername=" + currentUsername,
     method: "GET",
-    success: function (data) {
+    success: function(data) {
       console.log(data.data);
       console.log("currentUsername:" + currentUsername);
 
-      // 清空用户数量显示并更新
-      userCountContainer.empty().append("成员列表（" + data.data.length + "人）");
       // 清空现有用户列表（保留header部分）
-      userList.find("li:not(.header)").remove();
+      userList.empty();
+
+      // 更新在线人数显示
+      $(".sidebar-header").text(`在线用户 (${data.data.length})`);
 
       // 重新渲染用户列表
-      $.each(data.data, function (index, user) {
-        const userItem = $("<li></li>").addClass("online");
+      $.each(data.data, function(index, user) {
+        const isCurrentUser = user.username === currentUsername;
+        const activeTimeText = user.lastVisitTimeStr || '刚刚活跃';
 
-        const hoverAction = $("<div></div>").addClass("hover_action");
-        // 			hoverAction.html(`
-        //   <button type="button" class="btn btn-link text-info"><i class="zmdi zmdi-eye"></i></button>
-        //   <button type="button" class="btn btn-link text-warning"><i class="zmdi zmdi-star"></i></button>
-        //   <button type="button" class="btn btn-link text-danger"><i class="zmdi zmdi-delete"></i></button>
-        // `);
-        userItem.append(hoverAction);
-
-        const userCard = $("<a></a>").addClass("card");
-        userCard.html(`
-          <div class="card-body">
-            <div class="media">
-              <div class="avatar me-3">
-                <span class="status rounded-circle"></span>
-                <img class="avatar rounded-circle" src="${user.headpic}" alt="avatar">
+        const userItem = $(`
+          <li class="user-item ${isCurrentUser ? 'current-user' : ''}">
+            <div class="user-avatar">
+              ${user.username.charAt(0)}
+            </div>
+            <div class="user-info">
+              <div class="user-name">
+                ${user.username}${isCurrentUser ? ' (我)' : ''}
               </div>
-              <div class="media-body overflow-hidden">
-                <div class="d-flex align-items-center mb-1">
-                  <h6 class="text-truncate mb-0 me-auto">${user.username}</h6>
-<!--                  <p class="small text-muted text-nowrap ms-4 mb-0">${user.lastMessageTime}</p>-->
-                </div>
-<!--                这个地方以后可以放个性签名-->
-                      <div class="text-truncate">最近活跃：${user.lastVisitTimeStr}</div>
+              <div class="user-active-time">
+                最近活跃：${activeTimeText}
               </div>
             </div>
-          </div>
+          </li>
         `);
-        userItem.append(userCard);
+
+        // 如果用户有头像URL，使用头像代替文字
+        if (user.headpic) {
+          userItem.find('.user-avatar').html(`<img src="${user.headpic}" alt="${user.username}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`);
+        }
+
         userList.append(userItem);
       });
     },
-    error: function (xhr, status, error) {
-      console.error("There was a problem with the fetch operation:", error);
+    error: function(xhr, status, error) {
+      console.error("获取用户列表出错:", error);
+      // 显示错误信息
+      userList.html('<li style="color:#666;padding:10px;">无法加载用户列表，请刷新重试</li>');
     }
   });
 }

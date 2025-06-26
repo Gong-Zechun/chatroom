@@ -1,326 +1,351 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<meta name="description" content="Responsive Bootstrap 4 and web Application ui kit.">
-	<title>聊天室</title>
-	<link rel="icon" href="favicon.ico" type="image/x-icon"/>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>KQ聊天室</title>
+	<style>
+		/* Word风格主色调 */
+		:root {
+			--word-blue: #2B579A;
+			--word-light-blue: #E5ECF6;
+			--word-gray: #F5F5F5;
+			--word-dark-gray: #E0E0E0;
+			--word-text: #333333;
+			--word-border: 1px solid #D9D9D9;
+		}
 
-	<link rel="stylesheet" href="assets/fonts/material-icon/css/material-design-iconic-font.min.css">
-	<link rel="stylesheet" href="assets/vendor/bootstrap-datepicker/css/bootstrap-datepicker.min.css">
+		body {
+			font-family: 'Segoe UI', Arial, sans-serif;
+			margin: 0;
+			padding: 0;
+			height: 100vh;
+			display: flex;
+			color: var(--word-text);
+		}
 
-	<link rel="stylesheet" href="assets/css/style.min.css">
-	<!-- 引入 Emoji Mart CSS -->
-	<link rel="stylesheet" href="emoji-mart/emoji-mart.css"/>
-	<script src="emoji-mart/browser.js"></script>
+		/* 左侧功能区 - 类似Word菜单栏 */
+		.menu-bar {
+			width: 60px;
+			background-color: var(--word-blue);
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding-top: 20px;
+		}
+
+		.menu-item {
+			color: white;
+			padding: 12px 0;
+			text-align: center;
+			width: 100%;
+			cursor: pointer;
+		}
+
+		.menu-item:hover {
+			background-color: rgba(255, 255, 255, 0.2);
+		}
+
+		/* 右侧边栏 - 用户列表 */
+		.sidebar {
+			width: 260px; /* 加宽以适应更多信息 */
+			background-color: var(--word-gray);
+			border-right: var(--word-border);
+			display: flex;
+			flex-direction: column;
+		}
+
+		.sidebar-header {
+			padding: 12px 16px;
+			background-color: var(--word-light-blue);
+			border-bottom: var(--word-border);
+			font-weight: 600;
+		}
+
+		.user-list {
+			flex: 1;
+			overflow-y: auto;
+			padding: 0;
+			margin: 0;
+			list-style: none;
+		}
+
+		.user-item {
+			padding: 12px 16px;
+			border-bottom: var(--word-border);
+			display: flex;
+			align-items: center;
+			cursor: pointer;
+		}
+
+		.user-item:hover {
+			background-color: rgba(43, 87, 154, 0.05);
+		}
+
+		.user-avatar {
+			width: 40px;
+			height: 40px;
+			background-color: var(--word-blue);
+			color: white;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-right: 12px;
+			font-size: 16px;
+			flex-shrink: 0;
+		}
+
+		.user-info {
+			flex: 1;
+			min-width: 0; /* 防止内容溢出 */
+		}
+
+		.user-name {
+			font-weight: 500;
+			margin-bottom: 4px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.user-active-time {
+			font-size: 12px;
+			color: #666;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.current-user {
+			background-color: var(--word-light-blue);
+		}
+
+		/* 主聊天区域 */
+		.main-content {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.chat-header {
+			padding: 12px 20px;
+			background-color: var(--word-light-blue);
+			border-bottom: var(--word-border);
+			display: flex;
+			align-items: center;
+		}
+
+		.chat-title {
+			margin: 0;
+			flex: 1;
+		}
+
+		.chat-status {
+			font-size: 14px;
+			color: #666;
+		}
+
+		.chat-messages {
+			flex: 1;
+			overflow-y: auto;
+			padding: 20px;
+			background-color: white;
+		}
+
+		.message {
+			margin-bottom: 16px;
+			max-width: 70%;
+		}
+
+		.message.received {
+			margin-right: auto;
+		}
+
+		.message.sent {
+			margin-left: auto;
+		}
+
+		.message-content {
+			padding: 10px 15px;
+			border-radius: 4px;
+			background-color: var(--word-gray);
+			border: var(--word-border);
+			word-break: break-word;
+			line-height: 1.5;
+		}
+
+		.message.sent .message-content {
+			background-color: var(--word-blue);
+			color: white;
+			border-color: var(--word-blue);
+		}
+
+		.message-info {
+			font-size: 12px;
+			color: #666;
+			margin-bottom: 4px;
+			display: flex;
+			align-items: center;
+		}
+
+		.message-sender {
+			font-weight: 500;
+			margin-right: 8px;
+		}
+
+		.message-time {
+			opacity: 0.8;
+		}
+
+		/* 输入区域 */
+		.input-area {
+			padding: 12px 20px;
+			background-color: var(--word-gray);
+			border-top: var(--word-border);
+			display: flex;
+		}
+
+		.message-input {
+			flex: 1;
+			padding: 10px 12px;
+			border: var(--word-border);
+			border-radius: 4px;
+			outline: none;
+			font-size: 14px;
+		}
+
+		.message-input:focus {
+			border-color: var(--word-blue);
+		}
+
+		.send-button {
+			background-color: var(--word-blue);
+			color: white;
+			border: none;
+			border-radius: 4px;
+			padding: 0 20px;
+			margin-left: 10px;
+			cursor: pointer;
+			font-size: 14px;
+		}
+
+		/* 滚动条样式 */
+		::-webkit-scrollbar {
+			width: 6px;
+			height: 6px;
+		}
+
+		::-webkit-scrollbar-thumb {
+			background-color: rgba(0, 0, 0, 0.2);
+			border-radius: 3px;
+		}
+
+		::-webkit-scrollbar-track {
+			background-color: transparent;
+		}
+	</style>
+
+	<script src="assets/vendor/jquery/jquery-3.5.1.min.js" type="text/javascript"></script>
 	<script src="assets/js/sockjs.min.js"></script>
 	<script src="assets/js/stomp.min.js"></script>
 	<script src="assets/js/common.js"></script>
-	<style>
-		.chat-content {
-			overflow-y: auto; /* 添加垂直滚动条 */
-			height: 400px; /* 设置最大高度 */
-			padding: 1rem; /* 可选：添加一些内边距 */
-		}
-	</style>
 </head>
 <body>
-<div id="layout" class="theme-cyan">
-
-	<div class="navigation navbar justify-content-center py-xl-4 py-md-3 py-0 px-3">
-
-		<a href="old/index.html" title="Postman" class="brand">
-			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46 46" fill="none">
-				<g id="logo-icon-color">
-					<path id="Vector"
-								d="M26.4966 6.01307V2.00436L22.9746 0L19.5029 2.00436V6.01307L22.9746 8.01743L26.4966 6.01307Z"
-								fill="#4539CF"/>
-					<path id="Vector_2"
-								d="M34.7989 10.8235V6.81477L31.3272 4.81042L27.8555 6.81477V10.8235L31.3272 12.8279L34.7989 10.8235Z"
-								fill="#4539CF"/>
-					<path id="Vector_3"
-								d="M43 15.4837V11.4749L39.5283 9.47058L36.0063 11.4749V15.4837L39.5283 17.488L43 15.4837Z"
-								fill="#4539CF"/>
-					<path id="Vector_4"
-								d="M43 25.0043V20.9956L39.5283 18.9913L36.0063 20.9956V25.0043L39.5283 27.0087L43 25.0043Z"
-								fill="#4539CF"/>
-					<path id="Vector_5"
-								d="M33.9935 19.9935V16.9368L31.3269 15.4336L28.6602 16.9368V19.9935L31.3269 21.5469L33.9935 19.9935Z"
-								fill="#4539CF"/>
-					<path id="Vector_6"
-								d="M33.9935 29.5142V26.4575L31.3269 24.9041L28.6602 26.4575V29.5142L31.3269 31.0174L33.9935 29.5142Z"
-								fill="#4539CF"/>
-					<path id="Vector_7"
-								d="M15.931 19.6928V17.2876L13.8178 16.085L11.7549 17.2876V19.6928L13.8178 20.8453L15.931 19.6928Z"
-								fill="#4539CF"/>
-					<path id="Vector_8"
-								d="M15.931 29.1634V26.7582L13.8178 25.5555L11.7549 26.7582V29.1634L13.8178 30.366L15.931 29.1634Z"
-								fill="#4539CF"/>
-					<path id="Vector_9"
-								d="M6.4717 24.0022V21.9978L4.76101 20.9956L3 21.9978V24.0022L4.76101 25.0044L6.4717 24.0022Z"
-								fill="#4539CF"/>
-					<path id="Vector_10"
-								d="M43 34.4749V30.4662L39.5283 28.4619L36.0063 30.4662V34.4749L39.5283 36.4793L43 34.4749Z"
-								fill="#4539CF"/>
-					<path id="Vector_11"
-								d="M25.9433 15.1329V11.8758L23.1257 10.2222L20.2578 11.8758V15.1329L23.1257 16.7865L25.9433 15.1329Z"
-								fill="#4539CF"/>
-					<path id="Vector_12"
-								d="M25.9433 34.1242V30.8671L23.1257 29.2135L20.2578 30.8671V34.1242L23.1257 35.7778L25.9433 34.1242Z"
-								fill="#4539CF"/>
-					<path id="Vector_13"
-								d="M25.4908 24.3529V21.597L23.126 20.244L20.7109 21.597V24.3529L23.126 25.756L25.4908 24.3529Z"
-								fill="#4539CF"/>
-					<path id="Vector_14"
-								d="M34.7989 39.1852V35.1765L31.3272 33.1721L27.8555 35.1765V39.1852L31.3272 41.1896L34.7989 39.1852Z"
-								fill="#4539CF"/>
-					<path id="Vector_15"
-								d="M16.6856 10.2222V6.91507L13.8176 5.26147L10.9497 6.91507V10.2222L13.8176 11.8257L16.6856 10.2222Z"
-								fill="#4539CF"/>
-					<path id="Vector_16"
-								d="M6.22013 12.9782V11.1242L4.61006 10.1721L3 11.1242V12.9782L4.61006 13.9303L6.22013 12.9782Z"
-								fill="#4539CF"/>
-					<path id="Vector_17"
-								d="M26.4966 43.9956V39.9868L22.9746 37.9825L19.5029 39.9868V43.9956L22.9746 45.9999L26.4966 43.9956Z"
-								fill="#4539CF"/>
-					<path id="Vector_18"
-								d="M16.6856 39.0849V35.7777L13.8176 34.1241L10.9497 35.7777V39.0849L13.8176 40.7385L16.6856 39.0849Z"
-								fill="#4539CF"/>
-					<path id="Vector_19"
-								d="M7.5283 34.8257V32.22L5.26415 30.9172L3 32.22V34.8257L5.26415 36.1285L7.5283 34.8257Z"
-								fill="#4539CF"/>
-				</g>
-			</svg>
-		</a>
-
-		<div class="nav flex-md-column nav-pills flex-grow-1" role="tablist" aria-orientation="vertical">
-			<a class="mb-xl-3 mb-md-2 nav-link" data-toggle="pill" href="#nav-tab-user" role="tab">
-				<img src="assets/images/user.png" class="avatar sm rounded-circle" alt="user avatar"/>
-			</a>
-			<a class="mb-xl-3 mb-md-2 nav-link active" data-toggle="pill" href="#nav-tab-chat" role="tab"><i
-				class="zmdi zmdi-comment-alt"></i></a>
-		</div>
-
-		<div class="nav flex-md-column nav-pills flex-grow-2" role="tablist" aria-orientation="vertical">
-			<a class="mt-xl-3 mt-md-2 nav-link light-dark-toggle" href="javascript:void(0);">
-				<i class="zmdi zmdi-brightness-2"></i>
-				<input class="light-dark-btn" type="checkbox">
-			</a>
-		</div>
-
-		<button type="submit" class="btn sidebar-toggle-btn shadow-sm"><i class="zmdi zmdi-menu"></i></button>
-	</div>
-
-
-	<div class="sidebar border-end py-xl-4 py-3 px-xl-4 px-3">
-		<div class="tab-content">
-
-
-			<div class="tab-pane fade show active" id="nav-tab-chat" role="tabpanel">
-
-				<div class="d-flex justify-content-between align-items-center mb-4">
-					<h3 class="mb-0 text-primary">聊天室</h3>
-				</div>
-
-				<ul class="chat-list" id="user-list">
-					<li class="header d-flex justify-content-between ps-3 pe-3 mb-1">
-						<span id="users-total-num"></span> <!--这里的内容会动态填充-->
-						<div class="dropdown">
-							<a class="btn btn-link px-1 py-0 border-0 text-muted dropdown-toggle" href="#" role="button"
-								 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
-								class="zmdi zmdi-filter-list"></i></a>
-							<div class="dropdown-menu dropdown-menu-right">
-								<a class="dropdown-item" href="#">Action</a>
-								<a class="dropdown-item" href="#">Another action</a>
-								<a class="dropdown-item" href="#">Something else here</a>
-							</div>
-						</div>
-					</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-
-
-	<div class="rightbar d-none d-md-block">
-		<div class="tab-content py-xl-4 py-3 px-xl-4 px-3">
-
-			<div class="tab-pane fade" id="tab-calendar" role="tabpanel">
-				<div class="header border-bottom pb-4 d-flex justify-content-between">
-					<div>
-						<h6 class="mb-0 font-weight-bold">Calendar</h6>
-						<span class="text-muted">Update your profile details</span>
-					</div>
-					<div>
-						<button class="btn btn-link close-sidebar text-muted" type="button"><i
-							class="zmdi zmdi-close"></i></button>
-					</div>
-				</div>
-				<div class="body mt-4">
-					<div id="mini-calendar"></div>
-				</div>
-			</div>
-
-			<div class="tab-pane fade" id="tab-note" role="tabpanel">
-				<div class="header border-bottom pb-4 d-flex justify-content-between">
-					<div>
-						<h6 class="mb-0 font-weight-bold">My Notes</h6>
-						<span class="text-muted">Update your profile details</span>
-					</div>
-					<div>
-						<button class="btn btn-link close-sidebar text-muted" type="button"><i
-							class="zmdi zmdi-close"></i></button>
-					</div>
-				</div>
-			</div>
-
-			<div class="tab-pane fade" id="tab-task" role="tabpanel">
-				<div class="header border-bottom pb-4 d-flex justify-content-between">
-					<div>
-						<h6 class="mb-0 font-weight-bold">My Task List</h6>
-						<span class="text-muted">Update your profile details</span>
-					</div>
-					<div>
-						<button class="btn btn-link close-sidebar text-muted" type="button"><i
-							class="zmdi zmdi-close"></i></button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="main px-xl-5 px-lg-4 px-3">
-
-		<div class="chat-body">
-
-			<div class="chat-header border-bottom py-xl-4 py-md-3 py-2">
-				<div class="container-xxl">
-					<div class="row align-items-center">
-
-						<div class="col-6 col-xl-4" style="width:80%;">
-							<div class="media">
-								<div class="avatar me-3 show-user-detail" data-toggle="tooltip" title="Group details">
-									<div class="avatar rounded-circle no-image timber">
-										<span>KQ</span>
-									</div>
-								</div>
-<!--								<div class="media-body overflow-hidden">-->
-								<div class="media-body">
-									<div class="d-flex align-items-center mb-1">
-										<h6 class="text-truncate mb-0 me-auto">群公告</h6>
-									</div>
-									<div>
-										1、话题不要牵涉政治、不要牵涉政治、不要牵涉政治；2、聊天数据不做持久化，只保存于redis内存数据库，并且最多保留24小时；</br>
-										3、本聊天室不是商用软件，只是本人研究技术的一个demo，你们都算是测试人员，测试结束后本人会关闭聊天室；</br>
-										4、对聊天室有改进建议的请留言；</br>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="col-6 col-xl-8 text-end">
-							<ul class="nav justify-content-end">
-								<li class="nav-item list-inline-item d-none d-md-block me-3">
-									<a href="#" class="nav-link text-muted px-3" data-toggle="collapse"
-										 data-target="#chat-search-div" aria-expanded="true" title="Search this chat">
-										<i class="zmdi zmdi-search zmdi-hc-lg"></i>
-									</a>
-								</li>
-
-								<li class="nav-item list-inline-item d-block d-sm-none px-3">
-									<div class="dropdown">
-										<a class="nav-link text-muted px-0" href="#" data-toggle="dropdown"
-											 aria-haspopup="true" aria-expanded="false">
-											<i class="zmdi zmdi-more-vert zmdi-hc-lg"></i>
-										</a>
-										<div class="dropdown-menu dropdown-menu-right">
-											<a class="dropdown-item" href="#">Search chat</a>
-											<a class="dropdown-item" href="#">Attache Image</a>
-											<a class="dropdown-item" href="#">Video call</a>
-											<a class="dropdown-item" href="#">Call</a>
-											<a class="dropdown-item" href="#">Add New</a>
-										</div>
-									</div>
-								</li>
-
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="collapse" id="chat-search-div">
-				<div class="container-xxl py-2">
-					<div class="input-group">
-						<input type="text" class="form-control" placeholder="查询聊天记录（暂不可用）">
-						<div class="input-group-append">
-							<span class="input-group-text text-muted">0 / 0</span>
-						</div>
-						<div class="input-group-append">
-							<button type="button" class="btn btn-secondary">查询</button>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="chat-content">
-				<div class="container-xxl">
-					<ul class="list-unstyled py-4" id="message-list">
-						<!--动态填充内容-->
-					</ul>
-				</div>
-			</div>
-
-			<div class="chat-footer border-top py-xl-4 py-lg-2 py-2">
-				<div class="container-xxl">
-					<div class="row">
-						<div class="col-12">
-							<div class="input-group align-items-center">
-
-								<input type="text" class="form-control border-0 pl-0" id="message"
-											 placeholder="开始你的表演...">
-
-								<div class="input-group-append">
-								<span class="input-group-text border-0">
-								<button class="btn btn-sm btn-link text-muted" data-toggle="tooltip" title="表情"
-												type="button" id="emoji-button">
-									<i class="zmdi zmdi-mood font-22"></i></button>
-								</span>
-								</div>
-
-								<div id="emoji-picker" style="display: none; position: absolute; z-index: 1000;"></div>
-
-
-								<div class="input-group-append">
-								<span class="input-group-text border-0 pr-0">
-								<button type="submit" class="btn btn-primary">
-								<span class="d-none d-md-inline-block me-2" id="sendButton">发送</span>
-								<i class="zmdi zmdi-mail-send"></i>
-								</button>
-								</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+<!-- 左侧菜单栏 -->
+<div class="menu-bar">
+	<div class="menu-item">💬</div>
+	<div class="menu-item">👥</div>
+	<div class="menu-item">⚙️</div>
 </div>
 
-<script src="assets/vendor/jquery/jquery-3.5.1.min.js" type="text/javascript"></script>
-<script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>
+<!-- 右侧边栏 - 用户列表 -->
+<div class="sidebar">
+	<div class="sidebar-header"></div>
+	<ul class="user-list" id="user-list">
+<!--		<li class="user-item current-user">-->
+<!--			<div class="user-avatar"></div>-->
+<!--			<div class="user-info">-->
+<!--				<div class="user-name">李四 (我)</div>-->
+<!--				<div class="user-active-time">在线</div>-->
+<!--			</div>-->
+<!--		</li>-->
+<!--		<li class="user-item">-->
+<!--			<div class="user-avatar"></div>-->
+<!--			<div class="user-info">-->
+<!--				<div class="user-name">王五</div>-->
+<!--				<div class="user-active-time">5分钟前</div>-->
+<!--			</div>-->
+<!--		</li>-->
+	</ul>
+</div>
 
-<script src="assets/vendor/bootstrap-datepicker/js/bootstrap-datepicker.min.js" type="text/javascript"></script>
+<!-- 主聊天区域 -->
+<div class="main-content">
+	<div class="chat-header">
+		<h3 class="chat-title">KQ聊天室</h3>
+	</div>
 
-<script src="assets/js/template.js" type="text/javascript"></script>
+	<div class="chat-messages">
+		<!-- 收到的消息 -->
+		<div class="message received">
+			<div class="message-info">
+				<span class="message-sender">张三</span>
+				<span class="message-time">10:30</span>
+			</div>
+			<div class="message-content">
+				大家好，欢迎使用Word风格聊天室！这个界面设计采用了Microsoft Word的标志性蓝色主题，保持了Office产品的专业感和简洁性。
+			</div>
+		</div>
 
-<script src="https://ajax.cloudflare.com/cdn-cgi/scripts/7089c43e/cloudflare-static/rocket-loader.min.js"
-				data-cf-settings="67ae01ba4dd2a59f70ab9427-|49" defer=""></script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
-				data-cf-beacon='{"r":1,"version":"2021.2.0","rayId":"6203529a7c4f3684","si":10}'></script>
+		<!-- 发送的消息 -->
+		<div class="message sent">
+			<div class="message-info">
+				<span class="message-sender">李四 (我)</span>
+				<span class="message-time">10:32</span>
+			</div>
+			<div class="message-content">
+				这个设计真不错！我喜欢右侧用户列表的布局，特别是显示了用户头像、昵称和最近活跃时间，非常实用。
+			</div>
+		</div>
+
+		<div class="message received">
+			<div class="message-info">
+				<span class="message-sender">王五</span>
+				<span class="message-time">10:33</span>
+			</div>
+			<div class="message-content">
+				是的，界面很清晰。左侧的菜单栏、右侧的用户列表和中间的聊天区域分布合理，保持了Word的经典布局风格。
+			</div>
+		</div>
+
+		<div class="message received">
+			<div class="message-info">
+				<span class="message-sender">张三</span>
+				<span class="message-time">10:35</span>
+			</div>
+			<div class="message-content">
+				用户列表现在显示了更多信息，包括头像、昵称和活跃时间，这样我们就能知道谁在线、谁最近活跃过。
+			</div>
+		</div>
+
+		<div class="message sent">
+			<div class="message-info">
+				<span class="message-sender">李四 (我)</span>
+				<span class="message-time">10:36</span>
+			</div>
+			<div class="message-content">
+				而且当前用户有特殊高亮显示，非常直观。整体配色和细节处理都很专业！
+			</div>
+		</div>
+	</div>
+
+	<!-- 输入区域 -->
+	<div class="input-area">
+		<input type="text" class="message-input" placeholder="输入消息...">
+		<button class="send-button">发送</button>
+	</div>
+</div>
 
 <script>
 	//校验token是否有效
@@ -610,6 +635,5 @@
 		});
 	});
 </script>
-
 </body>
 </html>
