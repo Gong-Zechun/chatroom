@@ -53,7 +53,7 @@
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
           <jvmArguments>
-            -Xms512m -Xmx1024m -XX:MaxMetaspaceSize=256m
+            -Xms256m -Xmx850m -XX:MaxMetaspaceSize=128m
           </jvmArguments>
         </configuration>
       </plugin>
