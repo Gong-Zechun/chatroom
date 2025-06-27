@@ -1,5 +1,6 @@
 package top.javahai.chatroom.controller;
 
+import cn.hutool.core.map.MapUtil;
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,9 +21,9 @@ public class FileUploadController {
   }
 
   @PostMapping("/upload")
-  public KqRespEntity uploadFile(@RequestParam("file") MultipartFile file) {
+  public KqRespEntity uploadFile(@RequestParam("image") MultipartFile file, @RequestParam String token) {
     try {
-      return KqRespEntity.success(cloudinaryService.uploadFileWithAutoDeleteTag(file));
+      return KqRespEntity.success(MapUtil.of("imageUrl", cloudinaryService.uploadFileWithAutoDeleteTag(file, token)));
     } catch (IOException e) {
       e.printStackTrace();
       return KqRespEntity.badRequest("上传失败: " + e.getMessage());

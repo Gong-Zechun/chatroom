@@ -246,7 +246,6 @@
 		}
 
 
-
 		/* 消息容器样式调整 */
 		.message {
 			display: flex;
@@ -365,7 +364,6 @@
 		}
 
 
-
 		/* 输入容器样式 */
 		.input-container {
 			flex: 1;
@@ -418,6 +416,98 @@
 			--num-columns: 8;
 			--emoji-size: 1.5rem;
 		}
+
+
+		/* 上传按钮样式 */
+		.upload-button {
+			background: none;
+			border: none;
+			font-size: 20px;
+			padding: 0 10px;
+			cursor: pointer;
+			outline: none;
+			background-color: white;
+			border: var(--word-border);
+			border-left: none;
+			border-radius: 0 4px 4px 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.upload-button:hover {
+			background-color: var(--word-light-blue);
+		}
+
+		/* 图片预览容器样式 */
+		#image-preview-container {
+			position: absolute;
+			bottom: 50px;
+			right: 20px;
+			z-index: 1000;
+			background: white;
+			border: var(--word-border);
+			border-radius: 4px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+			padding: 10px;
+			max-width: 300px;
+		}
+
+		/* 预览图片样式 */
+		.preview-image {
+			max-width: 100%;
+			max-height: 200px;
+			display: block;
+			margin-bottom: 10px;
+		}
+
+		/* 预览操作按钮容器 */
+		.preview-actions {
+			display: flex;
+			justify-content: space-between;
+		}
+
+		/* 预览操作按钮 */
+		.preview-button {
+			padding: 5px 10px;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			font-size: 12px;
+		}
+
+		.preview-confirm {
+			background-color: var(--word-blue);
+			color: white;
+		}
+
+		.preview-cancel {
+			background-color: var(--word-gray);
+			color: var(--word-text);
+		}
+
+
+		/* 消息中的图片样式 */
+		.message-image {
+			max-width: 100%;
+			max-height: 200px;
+			border-radius: 4px;
+			display: block;
+		}
+
+		.message.sent .message-image {
+			border: 1px solid rgba(255, 255, 255, 0.3);
+		}
+
+		.message.received .message-image {
+			border: var(--word-border);
+		}
+
+
+		/* 图片消息样式 */
+		.image-message {
+			margin: 5px 0;
+		}
 	</style>
 
 	<script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js" type="module"></script>
@@ -438,21 +528,21 @@
 <div class="sidebar">
 	<div class="sidebar-header"></div>
 	<ul class="user-list" id="user-list">
-<!--		动态填充-->
-<!--		<li class="user-item current-user">-->
-<!--			<div class="user-avatar"></div>-->
-<!--			<div class="user-info">-->
-<!--				<div class="user-name">李四 (我)</div>-->
-<!--				<div class="user-active-time">在线</div>-->
-<!--			</div>-->
-<!--		</li>-->
-<!--		<li class="user-item">-->
-<!--			<div class="user-avatar"></div>-->
-<!--			<div class="user-info">-->
-<!--				<div class="user-name">王五</div>-->
-<!--				<div class="user-active-time">5分钟前</div>-->
-<!--			</div>-->
-<!--		</li>-->
+		<!--		动态填充-->
+		<!--		<li class="user-item current-user">-->
+		<!--			<div class="user-avatar"></div>-->
+		<!--			<div class="user-info">-->
+		<!--				<div class="user-name">李四 (我)</div>-->
+		<!--				<div class="user-active-time">在线</div>-->
+		<!--			</div>-->
+		<!--		</li>-->
+		<!--		<li class="user-item">-->
+		<!--			<div class="user-avatar"></div>-->
+		<!--			<div class="user-info">-->
+		<!--				<div class="user-name">王五</div>-->
+		<!--				<div class="user-active-time">5分钟前</div>-->
+		<!--			</div>-->
+		<!--		</li>-->
 	</ul>
 </div>
 
@@ -476,17 +566,22 @@
 	</div>
 
 	<div class="chat-messages">
-	<!--		动态填充-->
+		<!--		动态填充-->
 	</div>
 
 	<!-- 输入区域 -->
 	<div class="input-area">
 		<div class="input-container">
 			<button id="emoji-button" class="emoji-button">😊</button>
-			<input type="text" class="message-input" placeholder="输入消息...">
+			<input type="text" class="message-input" placeholder="输入消息..." id="message-input">
+			<label for="file-upload" class="upload-button">
+				<span>📷</span>
+				<input type="file" id="file-upload" accept="image/*" style="display: none;">
+			</label>
 		</div>
 		<button class="send-button">发送</button>
 		<div id="emoji-picker-container" style="display: none;"></div>
+		<div id="image-preview-container" style="display: none;"></div>
 	</div>
 </div>
 
@@ -524,6 +619,7 @@
 	});
 </script>
 
+<!--表情选择器-->
 <script>
 	$(document).ready(function () {
 		// 表情选择器功能
@@ -557,10 +653,12 @@
 	});
 </script>
 
+<!--刷新用户列表-->
 <script>
 	refreshUserList();
 </script>
 
+<!--获取群聊列表-->
 <script>
 	$(document).ready(function () {
 		// 获取群聊列表的容器
@@ -568,37 +666,49 @@
 		const chatMessages = $('.chat-messages'); // 修改为使用正确的容器
 
 		// 发起请求获取群组消息
+		// 发起请求获取群组消息
 		$.ajax({
 			url: "/groupMsg/",
 			method: "GET",
-			success: function (response) {
-				console.log(response.data);
+			success: function(response) {
 				const messages = response.data;
 
 				// 清空现有消息
 				chatMessages.empty();
 
 				// 渲染聊天消息
-				$.each(messages, function (index, message) {
+				$.each(messages, function(index, message) {
 					const isCurrentUser = usernameInSession === message.username;
 					const messageClass = isCurrentUser ? 'sent' : 'received';
 
+					// 检查是否是图片消息
+					let contentHtml = message.message;
+					if (message.message && message.message.startsWith('[图片]')) {
+						const imageUrl = message.message.substring(4);
+						contentHtml = `
+                    <div class="image-message">
+                        <img src="${imageUrl}" class="message-image"
+                             onerror="this.onerror=null;this.parentElement.innerHTML='[图片加载失败]'">
+                    </div>
+                `;
+					}
+
 					const messageElement = $(`
-        <div class="message ${messageClass}">
-            <img class="user-avatar" src="${message.headpic || 'default-avatar.png'}"
-                 alt="${message.username}"
-                 onerror="this.src='default-avatar.png'">
-            <div class="message-content-container">
-                <div class="message-info">
-                    <span class="message-sender">${message.username}${isCurrentUser ? ' (我)' : ''}</span>
-                    <span class="message-time">${message.sendTimeStr}</span>
+                <div class="message ${messageClass}">
+                    <img class="user-avatar" src="${message.headpic || 'default-avatar.png'}"
+                         alt="${message.username}"
+                         onerror="this.src='default-avatar.png'">
+                    <div class="message-content-container">
+                        <div class="message-info">
+                            <span class="message-sender">${message.username}${isCurrentUser ? ' (我)' : ''}</span>
+                            <span class="message-time">${message.sendTimeStr}</span>
+                        </div>
+                        <div class="message-content">
+                            ${contentHtml}
+                        </div>
+                    </div>
                 </div>
-                <div class="message-content">
-                    ${message.message}
-                </div>
-            </div>
-        </div>
-    `);
+            `);
 
 					chatMessages.append(messageElement);
 				});
@@ -606,14 +716,16 @@
 				// 滚动到底部
 				chatMessages.scrollTop(chatMessages[0].scrollHeight);
 			},
-			error: function (xhr, status, error) {
+			error: function(xhr, status, error) {
 				console.error("获取群组消息出错:", error);
 				chatMessages.append('<div class="message received">无法加载消息，请刷新重试</div>');
 			}
 		});
+
 	});
 </script>
 
+<!--socket-->
 <script>
 	$(document).ready(function () {
 		const currentToken = sessionStorage.getItem('token');
@@ -628,13 +740,16 @@
 
 		// 连接 WebSocket 服务器
 		stompClient.connect({}, function (frame) {
-			console.log('Connected: ' + frame);
 
 			// 订阅 /topic/chat，接收群聊消息
-			stompClient.subscribe('/topic/chat', function (content) {
+			stompClient.subscribe('/topic/chat', function(content) {
 				console.log('Received message:', content);
 				if (content.body) {
 					const message = JSON.parse(content.body);
+					// 确保消息对象有message属性
+					if (!message.message) {
+						message.message = '';
+					}
 					appendMessage(message);
 					refreshUserList();
 					// 滚动到底部
@@ -663,7 +778,6 @@
 			function sendMessage() {
 				const message = messageInput.val().trim();
 				if (message) {
-					console.log('Sending message:', message);
 					stompClient.send("/app/send", {}, currentToken + "--%--" + message);
 					messageInput.val(''); // 清空输入框
 				}
@@ -673,22 +787,34 @@
 				const isCurrentUser = usernameInSession === message.username;
 				const messageClass = isCurrentUser ? 'sent' : 'received';
 
+				// 检查是否是图片消息
+				let messageContent = message.message;
+				if (message.message && message.message.startsWith('[图片]')) {
+					const imageUrl = message.message.substring(4); // 去掉"[图片]"前缀
+					messageContent = `
+            <div class="image-message">
+                <img src="${imageUrl}" class="message-image"
+                     onerror="this.onerror=null;this.parentElement.innerHTML='[图片加载失败]'">
+            </div>
+        `;
+				}
+
 				const messageElement = $(`
-                    <div class="message ${messageClass}">
-                        <img class="user-avatar" src="${message.headpic || 'default-avatar.png'}"
-                             alt="${message.username}"
-                             onerror="this.src='default-avatar.png'">
-                        <div class="message-content-container">
-                            <div class="message-info">
-                                <span class="message-sender">${message.username}${isCurrentUser ? ' (我)' : ''}</span>
-                                <span class="message-time">${message.sendTimeStr}</span>
-                            </div>
-                            <div class="message-content">
-                                ${message.message}
-                            </div>
-                        </div>
-                    </div>
-                `);
+        <div class="message ${messageClass}">
+            <img class="user-avatar" src="${message.headpic || 'default-avatar.png'}"
+                 alt="${message.username}"
+                 onerror="this.src='default-avatar.png'">
+            <div class="message-content-container">
+                <div class="message-info">
+                    <span class="message-sender">${message.username}${isCurrentUser ? ' (我)' : ''}</span>
+                    <span class="message-time">${message.sendTimeStr}</span>
+                </div>
+                <div class="message-content">
+                    ${messageContent}
+                </div>
+            </div>
+        </div>
+    `);
 
 				chatMessages.append(messageElement);
 			}
@@ -703,10 +829,135 @@
 	});
 </script>
 
+<!--图片上传和预览功能-->
 <script>
 	$(document).ready(function () {
-		// 公告切换功能
-		$('.announcement-toggle').click(function() {
+		const fileUpload = $('#file-upload');
+		const imagePreviewContainer = $('#image-preview-container');
+		const messageInput = $('#message-input');
+		let selectedFile = null;
+
+		// 将 stompClient 移到外层，使其可以在多个函数中使用
+		let stompClient = null;
+
+		// 初始化 WebSocket 连接
+		function initWebSocket() {
+			if (!stompClient) {
+				const socket = new SockJS('/ws/chat');
+				stompClient = Stomp.over(socket);
+
+				stompClient.connect({}, function (frame) {
+					console.log('WebSocket connected');
+				}, function (error) {
+					console.error('WebSocket connection error:', error);
+				});
+			}
+		}
+
+		// 初始化 WebSocket
+		initWebSocket();
+
+		fileUpload.on('change', function (e) {
+			const file = e.target.files[0];
+			if (!file) {
+				return;
+			}
+
+			// 检查文件类型
+			if (!file.type.match('image.*')) {
+				alert('请选择图片文件');
+				return;
+			}
+
+			// 检查文件大小 (20MB限制)
+			if (file.size > 20 * 1024 * 1024) {
+				alert('图片大小不能超过20MB');
+				return;
+			}
+
+			selectedFile = file;
+
+			// 显示预览
+			const reader = new FileReader();
+			reader.onload = function (e) {
+				imagePreviewContainer.html(`
+                <img src="${e.target.result}" class="preview-image">
+                <div class="preview-actions">
+                    <button class="preview-button preview-cancel">取消</button>
+                    <button class="preview-button preview-confirm">发送</button>
+                </div>
+            `).show();
+
+				// 绑定预览按钮事件
+				$('.preview-cancel').click(function () {
+					imagePreviewContainer.hide().empty();
+					fileUpload.val('');
+					selectedFile = null;
+				});
+
+				$('.preview-confirm').click(sendImage);
+			};
+			reader.readAsDataURL(file);
+		});
+
+		function sendImage() {
+			if (!selectedFile) {
+				return;
+			}
+
+			const formData = new FormData();
+			formData.append('image', selectedFile);
+			formData.append('token', sessionStorage.getItem('token'));
+
+			$.ajax({
+				url: '/upload',
+				type: 'POST',
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function (response) {
+					if (response.code === 200) {
+						console.log("### response:", response);
+						// 图片上传成功，发送图片消息
+						const imageUrl = response.data.imageUrl;
+						console.log("### imageUrl:", imageUrl);
+						const token = sessionStorage.getItem('token');
+
+						// 检查连接状态
+						if (stompClient && stompClient.connected) {
+							stompClient.send("/app/send", {}, token + "--%--" + `[图片]${imageUrl}`);
+						} else {
+							// 如果连接未建立，尝试重新连接
+							initWebSocket();
+							setTimeout(() => {
+								if (stompClient && stompClient.connected) {
+									stompClient.send("/app/send", {}, token + "--%--" + `[图片]${imageUrl}`);
+								} else {
+									alert('无法发送消息，请刷新页面重试');
+								}
+							}, 500);
+						}
+
+						// 重置状态
+						imagePreviewContainer.hide().empty();
+						fileUpload.val('');
+						selectedFile = null;
+					} else {
+						alert('图片上传失败: ' + response.msg);
+					}
+				},
+				error: function (xhr, status, error) {
+					alert('图片上传出错: ' + error);
+				}
+			});
+		}
+	});
+</script>
+
+<!--公告切换功能-->
+<script>
+	$(document).ready(function () {
+		$('.announcement-toggle').click(function () {
 			const content = $('.announcement-content');
 			content.toggleClass('show');
 

@@ -16,9 +16,12 @@ public class CloudinaryService {
 
   private final Cloudinary cloudinary;
 
+  private final LoginService loginService;
+
   @Autowired
-  public CloudinaryService(Cloudinary cloudinary) {
+  public CloudinaryService(Cloudinary cloudinary, LoginService loginService) {
     this.cloudinary = cloudinary;
+    this.loginService = loginService;
   }
 
   public String uploadFile(MultipartFile file) throws IOException {
@@ -29,7 +32,9 @@ public class CloudinaryService {
     return uploadResult.get("url").toString();
   }
 
-  public String uploadFileWithAutoDeleteTag(MultipartFile file) throws IOException {
+  public String uploadFileWithAutoDeleteTag(MultipartFile file, String token) throws IOException {
+    loginService.checkToken(token);
+
     Map options = ObjectUtils.asMap(
       "tags", "auto-delete-7d",
       "context", "timestamp=" + (System.currentTimeMillis() / 1000)
