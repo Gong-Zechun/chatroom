@@ -109,6 +109,14 @@ public class RedissonUtils {
     return sortedSet.readAll();
   }
 
+  public Collection<Object> getSortedSet(String key, int start, int end, boolean desc) {
+    RScoredSortedSet<Object> sortedSet = redissonClient.getScoredSortedSet(key);
+    if (desc) {
+      return sortedSet.valueRangeReversed(start, end);
+    }
+    return sortedSet.valueRange(start, end);
+  }
+
   public void removeFromSortedSet(String key, Object value) {
     RScoredSortedSet<Object> sortedSet = redissonClient.getScoredSortedSet(key);
     sortedSet.remove(value);

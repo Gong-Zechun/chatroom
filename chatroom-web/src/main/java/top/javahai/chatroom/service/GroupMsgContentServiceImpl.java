@@ -1,10 +1,8 @@
 package top.javahai.chatroom.service;
 
-import cn.hutool.core.map.MapUtil;
-import com.google.common.collect.Lists;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import top.javahai.chatroom.newEntity.MessageV1;
@@ -22,18 +20,23 @@ public class GroupMsgContentServiceImpl {
   @Autowired
   private RedissonUtils redissonUtils;
 
-  public List<MessageV1> getLimitGroupMsgs() {
-    Map<String, Object> map = redissonUtils.getHash("groupMsgs");
-    if (MapUtil.isEmpty(map)) {
-      return Lists.newArrayList();
-    }
+  public List<MessageV1> getRecentGroupMessages() {
+    return getRecentGroupMessages(500);
+  }
 
-    List<MessageV1> messageV1s = Lists.newArrayList();
-    for (String messageId : map.keySet()) {
-      messageV1s.add((MessageV1) map.get(messageId));
+  public List<MessageV1> getRecentGroupMessages(int count) {
+    String messageKey = "group:messages:ids";
+    // 获取最新的count条消息ID（按分数从高到低）
+    Collection<Object> messageIds = redissonUtils.getSortedSet(messageKey, 0, count - 1, false);
+
+    List<MessageV1> messages = new ArrayList<>();
+    for (Object id : messageIds) {
+      String messageDataKey = "group:message:" + id;
+      MessageV1 message = (MessageV1) redissonUtils.get(messageDataKey);
+      if (message != null) {
+        messages.add(message);
+      }
     }
-    int size = Math.min(messageV1s.size(), 500);
-    messageV1s.sort(Comparator.comparing(MessageV1::getSendTime));
-    return messageV1s.subList(0, size);
+    return messages;
   }
 }

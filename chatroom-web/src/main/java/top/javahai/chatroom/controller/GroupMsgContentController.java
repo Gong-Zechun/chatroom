@@ -22,6 +22,6 @@ public class GroupMsgContentController {
 
   @GetMapping("/")
   public KqRespEntity getLimitGroupMsgs() {
-    return KqRespEntity.success(groupMsgContentService.getLimitGroupMsgs());
+    return KqRespEntity.success(groupMsgContentService.getRecentGroupMessages());
   }
 }
