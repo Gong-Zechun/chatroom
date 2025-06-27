@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import top.javahai.chatroom.service.CloudinaryService;
+import top.javahai.chatroom.utils.KqRespEntity;
 
 @RestController
 public class FileUploadController {
@@ -19,12 +20,12 @@ public class FileUploadController {
   }
 
   @PostMapping("/upload")
-  public String uploadFile(@RequestParam("file") MultipartFile file) {
+  public KqRespEntity uploadFile(@RequestParam("file") MultipartFile file) {
     try {
-      return cloudinaryService.uploadFileWithAutoDeleteTag(file);
+      return KqRespEntity.success(cloudinaryService.uploadFileWithAutoDeleteTag(file));
     } catch (IOException e) {
       e.printStackTrace();
-      return "上传失败: " + e.getMessage();
+      return KqRespEntity.badRequest("上传失败: " + e.getMessage());
     }
   }
 }
