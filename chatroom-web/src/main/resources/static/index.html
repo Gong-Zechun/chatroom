@@ -493,20 +493,15 @@
 			max-height: 200px;
 			border-radius: 4px;
 			display: block;
+			border: var(--word-border);
 		}
 
 		.message.sent .message-image {
-			border: 1px solid rgba(255, 255, 255, 0.3);
+			border-color: rgba(255, 255, 255, 0.3);
 		}
 
 		.message.received .message-image {
 			border: var(--word-border);
-		}
-
-
-		/* 图片消息样式 */
-		.image-message {
-			margin: 5px 0;
 		}
 	</style>
 
@@ -732,15 +727,9 @@
 		const usernameInSession = sessionStorage.getItem('username');
 		const chatMessages = $('.chat-messages');
 
-		// 创建一个 SockJS 客户端实例
-		const socket = new SockJS('/ws/chat');
-
-		// 使用 Stomp.js 封装 SockJS
-		const stompClient = Stomp.over(socket);
-
+		stompClient = initWebSocket();
 		// 连接 WebSocket 服务器
 		stompClient.connect({}, function (frame) {
-
 			// 订阅 /topic/chat，接收群聊消息
 			stompClient.subscribe('/topic/chat', function(content) {
 				console.log('Received message:', content);
@@ -836,26 +825,7 @@
 		const imagePreviewContainer = $('#image-preview-container');
 		const messageInput = $('#message-input');
 		let selectedFile = null;
-
-		// 将 stompClient 移到外层，使其可以在多个函数中使用
-		let stompClient = null;
-
-		// 初始化 WebSocket 连接
-		function initWebSocket() {
-			if (!stompClient) {
-				const socket = new SockJS('/ws/chat');
-				stompClient = Stomp.over(socket);
-
-				stompClient.connect({}, function (frame) {
-					console.log('WebSocket connected');
-				}, function (error) {
-					console.error('WebSocket connection error:', error);
-				});
-			}
-		}
-
-		// 初始化 WebSocket
-		initWebSocket();
+		let stompClient = initWebSocket();
 
 		fileUpload.on('change', function (e) {
 			const file = e.target.files[0];

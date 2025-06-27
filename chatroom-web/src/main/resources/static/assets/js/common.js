@@ -29,6 +29,7 @@ $(document).ready(function() {
   // 这里可以添加其他需要在页面加载时初始化的公共功能
 });
 
+// 刷新用户列表
 function refreshUserList() {
   // 获取用户列表的容器
   const userList = $(".user-list");
@@ -90,3 +91,29 @@ function refreshUserList() {
     }
   });
 }
+
+
+/**
+ * [WebSocket] -- START
+ */
+// 将WebSocket初始化移到全局范围，只初始化一次
+let stompClient = null;
+
+// 初始化 WebSocket 连接
+function initWebSocket() {
+  if (!stompClient) {
+    // 创建一个 SockJS 客户端实例
+    const socket = new SockJS('/ws/chat');
+    // 使用 Stomp.js 封装 SockJS
+    stompClient = Stomp.over(socket);
+    stompClient.connect({}, function(frame) {
+      console.log('WebSocket connected');
+    }, function (error) {
+      console.error('WebSocket connection error:', error);
+    });
+  }
+  return stompClient;
+}
+/**
+ * [WebSocket] -- END
+ */
