@@ -672,39 +672,9 @@
 				chatMessages.empty();
 
 				// 渲染聊天消息
-				$.each(messages, function(index, message) {
+				$.each(messages, function (index, message) {
 					const isCurrentUser = usernameInSession === message.username;
-					const messageClass = isCurrentUser ? 'sent' : 'received';
-
-					// 检查是否是图片消息
-					let contentHtml = message.message;
-					if (message.message && message.message.startsWith('[图片]')) {
-						const imageUrl = message.message.substring(4);
-						contentHtml = `
-                    <div class="image-message">
-                        <img src="${imageUrl}" class="message-image"
-                             onerror="this.onerror=null;this.parentElement.innerHTML='[图片加载失败]'">
-                    </div>
-                `;
-					}
-
-					const messageElement = $(`
-                <div class="message ${messageClass}">
-                    <img class="user-avatar" src="${message.headpic || 'default-avatar.png'}"
-                         alt="${message.username}"
-                         onerror="this.src='default-avatar.png'">
-                    <div class="message-content-container">
-                        <div class="message-info">
-                            <span class="message-sender">${message.username}${isCurrentUser ? ' (我)' : ''}</span>
-                            <span class="message-time">${message.sendTimeStr}</span>
-                        </div>
-                        <div class="message-content">
-                            ${contentHtml}
-                        </div>
-                    </div>
-                </div>
-            `);
-
+					const messageElement = renderMessage(message, isCurrentUser);
 					chatMessages.append(messageElement);
 				});
 
@@ -774,38 +744,10 @@
 
 			function appendMessage(message) {
 				const isCurrentUser = usernameInSession === message.username;
-				const messageClass = isCurrentUser ? 'sent' : 'received';
-
-				// 检查是否是图片消息
-				let messageContent = message.message;
-				if (message.message && message.message.startsWith('[图片]')) {
-					const imageUrl = message.message.substring(4); // 去掉"[图片]"前缀
-					messageContent = `
-            <div class="image-message">
-                <img src="${imageUrl}" class="message-image"
-                     onerror="this.onerror=null;this.parentElement.innerHTML='[图片加载失败]'">
-            </div>
-        `;
-				}
-
-				const messageElement = $(`
-        <div class="message ${messageClass}">
-            <img class="user-avatar" src="${message.headpic || 'default-avatar.png'}"
-                 alt="${message.username}"
-                 onerror="this.src='default-avatar.png'">
-            <div class="message-content-container">
-                <div class="message-info">
-                    <span class="message-sender">${message.username}${isCurrentUser ? ' (我)' : ''}</span>
-                    <span class="message-time">${message.sendTimeStr}</span>
-                </div>
-                <div class="message-content">
-                    ${messageContent}
-                </div>
-            </div>
-        </div>
-    `);
-
+				const messageElement = renderMessage(message, isCurrentUser);
 				chatMessages.append(messageElement);
+				// 滚动到底部
+				chatMessages.scrollTop(chatMessages[0].scrollHeight);
 			}
 		}, function (error) {
 			// 处理连接错误

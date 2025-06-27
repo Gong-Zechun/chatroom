@@ -117,3 +117,38 @@ function initWebSocket() {
 /**
  * [WebSocket] -- END
  */
+
+
+// 提取公共的渲染函数
+function renderMessage(message, isCurrentUser) {
+  const messageClass = isCurrentUser ? 'sent' : 'received';
+
+  // 图片消息处理
+  let contentHtml = message.message;
+  if (message.message && message.message.startsWith('[图片]')) {
+    const imageUrl = message.message.substring(4); // 去掉"[图片]"前缀
+    contentHtml = `
+            <div class="image-message">
+                <img src="${imageUrl}" class="message-image"
+                     onerror="this.onerror=null;this.parentElement.innerHTML='[图片加载失败]'">
+            </div>
+        `;
+  }
+
+  return $(`
+        <div class="message ${messageClass}">
+            <img class="user-avatar" src="${message.headpic || 'default-avatar.png'}"
+                 alt="${message.username}"
+                 onerror="this.src='default-avatar.png'">
+            <div class="message-content-container">
+                <div class="message-info">
+                    <span class="message-sender">${message.username}${isCurrentUser ? ' (我)' : ''}</span>
+                    <span class="message-time">${message.sendTimeStr}</span>
+                </div>
+                <div class="message-content">
+                    ${contentHtml}
+                </div>
+            </div>
+        </div>
+    `);
+}
