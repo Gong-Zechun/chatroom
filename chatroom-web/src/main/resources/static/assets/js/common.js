@@ -35,12 +35,6 @@ function refreshUserList() {
   const userList = $(".user-list");
   const currentUsername = sessionStorage.getItem('username');
 
-  // 判断用户名是否为空
-  if (!currentUsername) {
-    window.location.href = "/login.html";
-    return;
-  }
-
   // 发起请求获取用户列表
   $.ajax({
     url: "/users?currentUsername=" + currentUsername,
@@ -151,4 +145,36 @@ function renderMessage(message, isCurrentUser) {
             </div>
         </div>
     `);
+}
+
+function checkToken() {
+  const token = sessionStorage.getItem('token');
+  if (!token) {
+    // 如果token为空，跳转到登录页面
+    alert("token已被清除，请重新登录！");
+    window.location.href = "/login.html";
+  }
+
+  // 创建 FormData 对象
+  const formData = new FormData();
+  formData.append("token", token);
+
+  $.ajax({
+    url: "/checkToken", // 后端接口地址
+    method: "POST",
+    data: formData,
+    processData: false, // 告诉 jQuery 不要去处理发送的数据
+    contentType: false, // 告诉 jQuery 不要去设置 Content-Type 请求头
+    success: function (data) {
+      console.log(data.data);
+
+    },
+    error: function (xhr, status, error) {
+      const response = JSON.parse(xhr.responseText);
+      alert(response.msg); //token过期
+      // 清除 sessionStorage 中的所有项
+      window.location.href = "/login.html";
+      sessionStorage.clear();
+    }
+  });
 }

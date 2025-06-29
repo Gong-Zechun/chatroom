@@ -615,43 +615,17 @@
 	</div>
 </div>
 
+<!--校验token是否有效-->
 <script>
-	//校验token是否有效
 	$(document).ready(function () {
-		const token = sessionStorage.getItem('token');
-		if (!token) {
-			// 如果用户名为空，跳转到登录页面
-			window.location.href = "/login.html";
-		}
-
-		// 创建 FormData 对象
-		const formData = new FormData();
-		formData.append("token", token);
-
-		$.ajax({
-			url: "/checkToken", // 后端接口地址
-			method: "POST",
-			data: formData,
-			processData: false, // 告诉 jQuery 不要去处理发送的数据
-			contentType: false, // 告诉 jQuery 不要去设置 Content-Type 请求头
-			success: function (data) {
-				console.log(data.data);
-
-			},
-			error: function (xhr, status, error) {
-				const response = JSON.parse(xhr.responseText);
-				alert(response.msg); //token过期
-				// 清除 sessionStorage 中的所有项
-				window.location.href = "/login.html";
-				sessionStorage.clear();
-			}
-		});
+		checkToken();
 	});
 </script>
 
 <!--表情选择器-->
 <script>
 	$(document).ready(function () {
+		checkToken();
 		// 表情选择器功能
 		const emojiButton = $('#emoji-button');
 		const emojiPickerContainer = $('#emoji-picker-container');
@@ -685,12 +659,14 @@
 
 <!--刷新用户列表-->
 <script>
+	checkToken();
 	refreshUserList();
 </script>
 
 <!--获取群聊列表-->
 <script>
 	$(document).ready(function () {
+		checkToken();
 		// 获取群聊列表的容器
 		const usernameInSession = sessionStorage.getItem('username');
 		const chatMessages = $('.chat-messages');
@@ -728,6 +704,7 @@
 <!--socket-->
 <script>
 	$(document).ready(function () {
+		checkToken();
 		const currentToken = sessionStorage.getItem('token');
 		const usernameInSession = sessionStorage.getItem('username');
 		const chatMessages = $('.chat-messages');
@@ -798,6 +775,8 @@
 <!--图片上传和预览功能-->
 <script>
 	$(document).ready(function () {
+		checkToken();
+
 		const fileUpload = $('#file-upload');
 		const imagePreviewContainer = $('#image-preview-container');
 		const messageInput = $('#message-input');
@@ -930,6 +909,8 @@
 <!--公告切换功能-->
 <script>
 	$(document).ready(function () {
+		checkToken();
+
 		$('.announcement-toggle').click(function () {
 			const content = $('.announcement-content');
 			content.toggleClass('show');
