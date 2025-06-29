@@ -1,64 +1,94 @@
 # 数据库配置
 spring:
-    application:
-        name: chatroom
-    datasource:
-        url: jdbc:mysql://root:qDBgskZuqraepVxyuEpertragCYMgNme@nozomi.proxy.rlwy.net:46263/chatroom?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&useUnicode=true&allowPublicKeyRetrieval=true
-        type: com.alibaba.druid.pool.DruidDataSource
-        username: root
-        password: qDBgskZuqraepVxyuEpertragCYMgNme
-        # Druid 连接池配置
-        druid:
-            initial-size: 5
-            min-idle: 5
-            max-active: 20
-            max-wait: 60000
-            time-between-eviction-runs-millis: 60000
-            min-evictable-idle-time-millis: 300000
-            validation-query: SELECT 1
-            test-while-idle: true
-            test-on-borrow: false
-            test-on-return: false
-            # SQL 日志配置
-            stat-sql-enable: true
-            log-slow-sql: true
-            slow-sql-millis: 1000
+  application:
+    name: chatroom
+  datasource:
+    url: jdbc:mysql://root:qDBgskZuqraepVxyuEpertragCYMgNme@nozomi.proxy.rlwy.net:46263/chatroom?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&useUnicode=true&allowPublicKeyRetrieval=true
+    type: com.alibaba.druid.pool.DruidDataSource
+    username: root
+    password: qDBgskZuqraepVxyuEpertragCYMgNme
+    # Druid 连接池配置
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      # SQL 日志配置
+      stat-sql-enable: true
+      log-slow-sql: true
+      slow-sql-millis: 1000
+      filters: stat,wall
+      connection-properties:
+        druid.mysql.usePingMethod: false
+        useSSL: false
+        serverTimezone: Asia/Shanghai
+        useLegacyDatetimeCode: false
 
-    redis:
-      database: 0 # 数据库编号（默认为0）
-      host: redis.railway.internal # Redis服务器地址
-      port: 6379 # Redis服务器端口
-      password:  KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE
-      timeout: 3000ms # 连接超时时间（可选）
-      jedis:
-        pool:
-          max-active: 8 # 最大活动连接数
-          max-idle: 8 # 最大空闲连接数
-          min-idle: 0 # 最小空闲连接数
-          max-wait: -1ms # 等待可用连接的最大时间（负值表示无限等待）
+  redis:
+    database: 0 # 数据库编号（默认为0）
+    host: redis.railway.internal # Redis服务器地址
+    port: 6379 # Redis服务器端口
+    password: KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE
+    timeout: 3000ms # 连接超时时间（可选）
+    jedis:
+      pool:
+        max-active: 8 # 最大活动连接数
+        max-idle: 8 # 最大空闲连接数
+        min-idle: 0 # 最小空闲连接数
+        max-wait: -1ms # 等待可用连接的最大时间（负值表示无限等待）
+  # 最大文件大小 (20MB)
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
 
 redisson:
-    config:
-    single-server-config:
-        address: "redis://default:KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE@redis.railway.internal:6379"
-        password: "KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE"
-        connection-pool-size: 50
-        connection-minimum-idle-size: 10
+  config:
+  single-server-config:
+    address: "redis://default:KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE@redis.railway.internal:6379"
+    password: "KbdPsGVYMPipHGcIqZVgcKBrjMHvkKwE"
+    connection-pool-size: 50
+    connection-minimum-idle-size: 10
 
 #sql日志显示
 mybatis:
-    configuration:
-        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     #mapper文件位置配置
-        mapper-locations: classpath:mapper/*.xml
+    mapper-locations: classpath:mapper/*.xml
 
 #端口号配置
 server:
-    port: 8082
+  port: 8082
 
-    #FastDFS文件服务器的主机名
-fastdfs:
-    nginx:
-        host:
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 开启SQL日志
+    map-underscore-to-camel-case: true
+    # 添加字段映射配置
+    call-setters-on-nulls: true
+    # 关键配置：启用新的日期时间处理器
+    jdbc-type-for-null: null
+  global-config:
+    db-config:
+      id-type: auto # 主键策略
+      field-strategy: not_empty
+      table-underline: true
+      logic-delete-field: isDeleted # 逻辑删除字段名
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+  mapper-locations: classpath:mapper/*.xml
 
-
+# cloudinary云配置
+cloudinary:
+  cloud-name: dgj0fopho
+  api-key: 392194363749815
+  api-secret: miPflf2S4k5rzsExx6zlwRAwuT0
+  secure: true
