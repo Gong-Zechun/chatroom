@@ -35,7 +35,7 @@ public class LoginService {
   private UserServiceImpl userService;
 
   // Token过期时间(单位：分钟)
-  private static final long TOKEN_EXPIRE = 10;
+  private static final long TOKEN_EXPIRE = 20;
   private static final TimeUnit TOKEN_EXPIRE_UNIT = TimeUnit.MINUTES;
 
   public String login(HttpServletRequest request, String verifycode,  String username, String password) {
