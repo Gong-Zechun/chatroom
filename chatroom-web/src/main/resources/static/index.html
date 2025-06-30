@@ -629,7 +629,6 @@
 <!--表情选择器-->
 <script>
 	$(document).ready(function () {
-		checkToken();
 		// 表情选择器功能
 		const emojiButton = $('#emoji-button');
 		const emojiPickerContainer = $('#emoji-picker-container');
@@ -673,7 +672,6 @@
 <!--获取群聊列表-->
 <script>
 	$(document).ready(function () {
-		checkToken();
 		// 获取群聊列表的容器
 		const usernameInSession = sessionStorage.getItem('username');
 		const chatMessages = $('.chat-messages');
@@ -782,8 +780,6 @@
 <!--图片上传和预览功能-->
 <script>
 	$(document).ready(function () {
-		checkToken();
-
 		const fileUpload = $('#file-upload');
 		const imagePreviewContainer = $('#image-preview-container');
 		const messageInput = $('#message-input');
@@ -925,8 +921,6 @@
 <!--公告切换功能-->
 <script>
 	$(document).ready(function () {
-		checkToken();
-
 		$('.announcement-toggle').click(function () {
 			const content = $('.announcement-content');
 			content.toggleClass('show');

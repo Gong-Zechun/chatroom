@@ -151,11 +151,17 @@ function renderMessage(message, isCurrentUser) {
 let tokenExpiredAlertShown = false;
 
 function checkToken() {
+  // 如果已经显示过提示，不再处理
+  if (tokenExpiredAlertShown) return;
+
   const token = sessionStorage.getItem('token');
   if (!token) {
     // 如果token为空，跳转到登录页面
-    alert("token已被清除，请重新登录！");
-    window.location.href = "/login.html";
+    if (!tokenExpiredAlertShown) {
+      alert("token已被清除，请重新登录！");
+      tokenExpiredAlertShown = true;
+      window.location.href = "/login.html";
+    }
     return;
   }
 
