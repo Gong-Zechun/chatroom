@@ -147,12 +147,16 @@ function renderMessage(message, isCurrentUser) {
     `);
 }
 
+// 全局变量，记录是否已经弹出过token过期提示
+let tokenExpiredAlertShown = false;
+
 function checkToken() {
   const token = sessionStorage.getItem('token');
   if (!token) {
     // 如果token为空，跳转到登录页面
     alert("token已被清除，请重新登录！");
     window.location.href = "/login.html";
+    return;
   }
 
   // 创建 FormData 对象
@@ -167,14 +171,17 @@ function checkToken() {
     contentType: false, // 告诉 jQuery 不要去设置 Content-Type 请求头
     success: function (data) {
       console.log(data.data);
-
     },
     error: function (xhr, status, error) {
       const response = JSON.parse(xhr.responseText);
-      alert(response.msg); //token过期
-      // 清除 sessionStorage 中的所有项
-      window.location.href = "/login.html";
-      sessionStorage.clear();
+      if (!tokenExpiredAlertShown) {
+        alert(response.msg); //token过期
+        tokenExpiredAlertShown = true; // 标记已弹出过提示框
+        // 清除 sessionStorage 中的所有项
+        sessionStorage.clear();
+        // 跳转到登录页面
+        window.location.href = "/login.html";
+      }
     }
   });
 }
